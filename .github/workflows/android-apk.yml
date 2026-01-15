@@ -10,39 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # Set up JDK 17
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # Set up Android SDK
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
         with:
           api-level: 34
           build-tools: 34.0.0
-          cmake: false
-          ndk: false
 
-      # Cache Gradle
-      - name: Cache Gradle
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+      # Make gradlew executable
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
-      # Build APK using Gradle directly (wrapper unnecessary)
-      - name: Build Debug APK
-        run: ./gradlew build -Pci --stacktrace || ./gradlew assembleDebug --stacktrace
+      # Build APK
+      - name: Build APK
+        run: ./gradlew assembleDebug
 
       # Upload APK
       - name: Upload APK
