@@ -2,8 +2,7 @@ name: Build SPX APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
@@ -12,29 +11,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      # Setup JDK
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v2
+      # Setup Android SDK
+      - uses: android-actions/setup-android@v2
         with:
           api-level: 34
           build-tools: 34.0.0
 
-      # Make gradlew executable
-      - name: Make gradlew executable
-        run: chmod +x gradlew
+      # Install Gradle
+      - uses: gradle/gradle-build-action@v2
 
       # Build APK
-      - name: Build APK
-        run: ./gradlew assembleDebug
+      - run: gradle assembleDebug
 
       # Upload APK
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: SPX-APK
           path: app/build/outputs/apk/debug/app-debug.apk
