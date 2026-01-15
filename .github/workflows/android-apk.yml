@@ -1,29 +1,32 @@
-name: Build APK
+name: Build APK without wrapper
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup JDK
+      # Install JDK
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Grant execute permission
-        run: chmod +x gradlew
+      # Install Gradle
+      - name: Install Gradle
+        uses: gradle/gradle-build-action@v2
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+      # Build APK using system Gradle
+      - name: Build APK
+        run: gradle assembleDebug
 
+      # Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
