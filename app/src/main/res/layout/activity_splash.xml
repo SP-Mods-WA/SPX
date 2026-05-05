@@ -26,7 +26,7 @@
             android:id="@+id/splash_logo"
             android:layout_width="96dp"
             android:layout_height="96dp"
-            android:src="@mipmap/ic_launcher"
+            android:src="@drawable/ic_launcher"
             android:scaleType="fitCenter"
             android:contentDescription="@string/app_name" />
 
