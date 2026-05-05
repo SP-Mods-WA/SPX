@@ -43,7 +43,7 @@
         android:gravity="center">
 
         <TextView
-            android:id="@+id/splash_from"
+            android:id="@+id/splash_froms"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="from"
@@ -52,7 +52,7 @@
             android:letterSpacing="0.05" />
 
         <TextView
-            android:id="@+id/spmods_text"
+            android:id="@+id/splash_from"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="SPMODS"
