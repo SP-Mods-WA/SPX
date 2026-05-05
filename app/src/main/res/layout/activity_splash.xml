@@ -10,7 +10,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="#0F0F0F">
 
     <!-- ── Center group: logo + app name ── -->
     <LinearLayout
@@ -33,12 +33,12 @@
     </LinearLayout>
 
     <!-- ── Bottom section: "from SPMODS" ── -->
-    <LinearLayout
+        <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="36dp"
+        android:layout_marginBottom="48dp"
         android:orientation="vertical"
         android:gravity="center">
 
@@ -46,13 +46,21 @@
             android:id="@+id/splash_from"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="from SPMODS"
-            android:textColor="#8696A0"
-            android:textSize="13sp"
-            android:fontFamily="sans-serif"
-            android:letterSpacing="0.02"
-            android:alpha="0" />
+            android:text="from"
+            android:textColor="#888888"
+            android:textSize="14sp"
+            android:letterSpacing="0.05" />
+
+        <TextView
+            android:id="@+id/spmods_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SPMODS"
+            android:textColor="#FFFFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp" />
 
     </LinearLayout>
-
+    
 </RelativeLayout>
