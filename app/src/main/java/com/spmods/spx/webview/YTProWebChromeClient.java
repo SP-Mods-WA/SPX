@@ -30,6 +30,23 @@ public class YTProWebViewClient extends WebViewClient {
 		this.activity = activity;
 		this.web = web;
 	}
+
+	private WebResourceResponse serveRawResource(int resId, String mimeType) {
+		try {
+			InputStream inputStream = activity.getResources().openRawResource(resId);
+			Map<String, String> headers = new HashMap<>();
+			headers.put("Access-Control-Allow-Origin", "*");
+			headers.put("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+			headers.put("Access-Control-Allow-Headers", "*");
+			headers.put("Content-Type", mimeType);
+			headers.put("Access-Control-Allow-Credentials", "true");
+			headers.put("Cross-Origin-Resource-Policy", "cross-origin");
+			return new WebResourceResponse(mimeType, "utf-8", 200, "OK", headers, inputStream);
+		} catch (Exception e) {
+			Log.e("YTPRO_WVC", "Raw resource load failed: " + e.getMessage());
+			return null;
+		}
+	}
 	
 	@Override
 	public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
@@ -88,11 +105,9 @@ public class YTProWebViewClient extends WebViewClient {
 			}
 		}
 		
-		
 		if (url.startsWith("https://www.google.com/js/") || 
 		url.startsWith("https://www.google.com/recaptcha/") ||
 		url.startsWith("https://www.google.com/js/th/")) {
-			
 			try {
 				HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
 				conn.setRequestProperty("User-Agent", request.getRequestHeaders().get("User-Agent"));
@@ -123,39 +138,35 @@ public class YTProWebViewClient extends WebViewClient {
 				Log.e("YTPRO_WVC", "Google JS fetch failed: " + e.getMessage());
 			}
 		}
-		
-		
+
 		if (url.contains("youtube.com/ytpro_cdn/npm/ytpro@latest")) {
-			try {
-				InputStream inputStream;
-				String mimeType = "application/javascript";
-
-				if (url.endsWith("/innertube.js")) {
-					inputStream = activity.getResources().openRawResource(R.raw.innertube);
-					mimeType = "text/javascript";
-				} else if (url.endsWith("/bgplay.js")) {
-					inputStream = activity.getResources().openRawResource(R.raw.bgplay);
-				} else {
-					inputStream = activity.getResources().openRawResource(R.raw.ytpro);
-				}
-
+			if (request.getMethod().equals("OPTIONS")) {
 				Map<String, String> headers = new HashMap<>();
 				headers.put("Access-Control-Allow-Origin", "*");
 				headers.put("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 				headers.put("Access-Control-Allow-Headers", "*");
-				headers.put("Content-Type", mimeType);
-				headers.put("Access-Control-Allow-Credentials", "true");
-				headers.put("Cross-Origin-Resource-Policy", "cross-origin");
+				return new WebResourceResponse("text/plain", "UTF-8", 204, "No Content", headers, null);
+			}
 
-				if (request.getMethod().equals("OPTIONS")) {
-					return new WebResourceResponse("text/plain", "UTF-8", 204, "No Content", headers, null);
-				}
-
-				return new WebResourceResponse(mimeType, "utf-8", 200, "OK", headers, inputStream);
-
-			} catch (Exception e) {
-				Log.e("YTPRO_WVC", "Raw resource load failed: " + e.getMessage());
-				return super.shouldInterceptRequest(view, request);
+			if (url.endsWith("/innertube.js")) {
+				return serveRawResource(R.raw.innertube, "text/javascript");
+			} else if (url.endsWith("/bgplay.js")) {
+				return serveRawResource(R.raw.bgplay, "application/javascript");
+			} else if (url.endsWith("/login.js")) {
+				return serveRawResource(R.raw.login, "application/javascript");
+			} else if (url.endsWith("/welcome.js")) {
+				return serveRawResource(R.raw.welcome, "application/javascript");
+			} else if (url.endsWith("/darkmode.js")) {
+				return serveRawResource(R.raw.darkmode, "application/javascript");
+			} else if (url.endsWith("/styles.js")) {
+				return serveRawResource(R.raw.styles, "application/javascript");
+			} else if (url.endsWith("/subscriptions.js")) {
+				return serveRawResource(R.raw.subscriptions, "application/javascript");
+			} else if (url.endsWith("/script.js")) {
+				return serveRawResource(R.raw.script, "application/javascript");
+			} else {
+				// main ytpro@latest
+				return serveRawResource(R.raw.script, "application/javascript");
 			}
 		}
 
@@ -167,37 +178,32 @@ public class YTProWebViewClient extends WebViewClient {
 			try {
 				URL newUrl = new URL(modifiedUrl);
 				HttpsURLConnection connection = (HttpsURLConnection) newUrl.openConnection();
-                
 				connection.setUseCaches(false);
-                connection.setDefaultUseCaches(false);
-                connection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
-                connection.addRequestProperty("Pragma", "no-cache");
-                connection.addRequestProperty("Expires", "0");
-                connection.setRequestProperty("User-Agent", "YTPRO");
-                connection.setRequestProperty("Accept", "**");
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
-                
-                connection.setRequestMethod("GET");
+				connection.setDefaultUseCaches(false);
+				connection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
+				connection.addRequestProperty("Pragma", "no-cache");
+				connection.addRequestProperty("Expires", "0");
+				connection.setRequestProperty("User-Agent", "YTPRO");
+				connection.setRequestProperty("Accept", "**");
+				connection.setConnectTimeout(10000);
+				connection.setReadTimeout(10000);
+				connection.setRequestMethod("GET");
 				connection.connect();
 				
 				String mimeType = connection.getContentType() != null ? connection.getContentType() : "application/javascript";
 				String encoding = connection.getContentEncoding() != null ? connection.getContentEncoding() : "utf-8";
-				
 				if (encoding == null) encoding = "utf-8";
-                String contentType = connection.getContentType();
-                if (contentType == null) {
-                    contentType = "application/javascript";
-                }
+				String contentType = connection.getContentType();
+				if (contentType == null) contentType = "application/javascript";
 
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Access-Control-Allow-Origin", "*");
-                headers.put("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-                headers.put("Access-Control-Allow-Headers", "*");
-                headers.put("Content-Type", contentType);
-                headers.put("Access-Control-Allow-Credentials", "true");
-                headers.put("Cross-Origin-Resource-Policy", "cross-origin");
-                
+				Map<String, String> headers = new HashMap<>();
+				headers.put("Access-Control-Allow-Origin", "*");
+				headers.put("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+				headers.put("Access-Control-Allow-Headers", "*");
+				headers.put("Content-Type", contentType);
+				headers.put("Access-Control-Allow-Credentials", "true");
+				headers.put("Cross-Origin-Resource-Policy", "cross-origin");
+				
 				if (request.getMethod().equals("OPTIONS")) {
 					return new WebResourceResponse("text/plain", "UTF-8", 204, "No Content", headers, null);
 				}
@@ -214,9 +220,15 @@ public class YTProWebViewClient extends WebViewClient {
 	@Override
 	public void onPageFinished(WebView view, String url) {
 		web.evaluateJavascript("if (window.trustedTypes && window.trustedTypes.createPolicy && !window.trustedTypes.defaultPolicy) {window.trustedTypes.createPolicy('default', {createHTML: (string) => string,createScriptURL: string => string, createScript: string => string, });}", null);
-		web.evaluateJavascript("(function () { var script = document.createElement('script'); script.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest'; document.body.appendChild(script);  })();", null);
-		web.evaluateJavascript("(function () { var script = document.createElement('script'); script.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/bgplay.js'; document.body.appendChild(script);  })();", null);
-		web.evaluateJavascript("(function () { var script = document.createElement('script');script.type='module';script.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/innertube.js'; document.body.appendChild(script);  })();", null);
+
+		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/script.js';document.body.appendChild(s);})();", null);
+		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/bgplay.js';document.body.appendChild(s);})();", null);
+		web.evaluateJavascript("(function(){var s=document.createElement('script');s.type='module';s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/innertube.js';document.body.appendChild(s);})();", null);
+		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/login.js';document.body.appendChild(s);})();", null);
+		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/welcome.js';document.body.appendChild(s);})();", null);
+		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/darkmode.js';document.body.appendChild(s);})();", null);
+		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/styles.js';document.body.appendChild(s);})();", null);
+		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/subscriptions.js';document.body.appendChild(s);})();", null);
 		
 		if (!url.contains("youtube.com/watch") && !url.contains("youtube.com/shorts") && activity.isPlaying) {
 			activity.isPlaying = false;
