@@ -24,6 +24,20 @@
 		android:largeHeap="true"
 		android:usesCleartextTraffic="true"
 		android:theme="@style/AppTheme">
+
+		    <activity
+        android:name=".SplashActivity"
+        android:exported="true"
+        android:theme="@style/SplashTheme"
+        android:screenOrientation="portrait"
+        android:launchMode="singleTop">
+
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity>
+		
 		<activity
 			android:name=".MainActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
