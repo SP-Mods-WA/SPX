@@ -1,240 +1,107 @@
 package com.spmods.spx.webview;
 
-import android.content.Intent;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Build;
+import android.view.View;
+import android.view.WindowManager;
+import android.webkit.PermissionRequest;
+import android.webkit.WebChromeClient;
+import android.widget.FrameLayout;
 
-import com.spmods.spx.ForegroundService;
+// Import the main files from the parent package
 import com.spmods.spx.MainActivity;
 import com.spmods.spx.R;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.net.ssl.HttpsURLConnection;
-import android.util.Log;
+public class YTProWebChromeClient extends WebChromeClient {
+    private final MainActivity activity;
+    private final YTProWebView web;
+    
+    private View mCustomView;
+    private WebChromeClient.CustomViewCallback mCustomViewCallback;
+    private int mOriginalOrientation;
+    private int mOriginalSystemUiVisibility;
 
-public class YTProWebViewClient extends WebViewClient {
-	
-	private final MainActivity activity;
-	private final YTProWebView web;
-	
-	public YTProWebViewClient(MainActivity activity, YTProWebView web) {
-		this.activity = activity;
-		this.web = web;
-	}
+    public YTProWebChromeClient(MainActivity activity, YTProWebView web) {
+        this.activity = activity;
+        this.web = web;
+    }
 
-	private WebResourceResponse serveRawResource(int resId, String mimeType) {
-		try {
-			InputStream inputStream = activity.getResources().openRawResource(resId);
-			Map<String, String> headers = new HashMap<>();
-			headers.put("Access-Control-Allow-Origin", "*");
-			headers.put("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-			headers.put("Access-Control-Allow-Headers", "*");
-			headers.put("Content-Type", mimeType);
-			headers.put("Access-Control-Allow-Credentials", "true");
-			headers.put("Cross-Origin-Resource-Policy", "cross-origin");
-			return new WebResourceResponse(mimeType, "utf-8", 200, "OK", headers, inputStream);
-		} catch (Exception e) {
-			Log.e("YTPRO_WVC", "Raw resource load failed: " + e.getMessage());
-			return null;
-		}
-	}
-	
-	@Override
-	public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-		String url = request.getUrl().toString();
+    @Override
+    public Bitmap getDefaultVideoPoster() {
+       return BitmapFactory.decodeResource(activity.getApplicationContext().getResources(), 2130837573);
+    }
 
-		if (url.contains("accounts.google.com") ||
-		url.contains("google.com/signin") ||
-		url.contains("google.com/oauth") ||
-		url.contains("googleapis.com/oauth")) {
-			return super.shouldInterceptRequest(view, request);
-		}
-		
-		if (request.isForMainFrame() && (url.contains("m.youtube.com") || url.contains("www.youtube.com"))) {
-			try {
-				URL newUrl = new URL(url);
-				HttpsURLConnection connection = (HttpsURLConnection) newUrl.openConnection();
-				connection.setRequestMethod(request.getMethod());
-				
-				for (Map.Entry<String, String> header : request.getRequestHeaders().entrySet()) {
-					if (!header.getKey().equalsIgnoreCase("Accept-Encoding")) {
-						connection.setRequestProperty(header.getKey(), header.getValue());
-					}
-				}
-				
-				String cookies = android.webkit.CookieManager.getInstance().getCookie(url);
-				if (cookies != null) connection.setRequestProperty("Cookie", cookies);
-				
-				connection.connect();
-				
-				Map<String, String> safeHeaders = new HashMap<>();
-				for (Map.Entry<String, List<String>> entry : connection.getHeaderFields().entrySet()) {
-					if (entry.getKey() != null) {
-						String headerName = entry.getKey().toLowerCase();
-						if (!headerName.equals("content-security-policy") && !headerName.equals("content-security-policy-report-only")) {
-							safeHeaders.put(entry.getKey(), String.join(", ", entry.getValue()));
-						}
-					}
-				}
-				
-				InputStream is = connection.getInputStream();
-				BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-				StringBuilder html = new StringBuilder();
-				String line;
-				while ((line = reader.readLine()) != null) {
-					if (line.toLowerCase().contains("content-security-policy")) {
-						line = line.replaceAll("<meta.*?http-equiv=[\"']?Content-Security-Policy[\"']?.*?>", "");
-					}
-					html.append(line).append("\n");
-				}
-				
-				InputStream modifiedHtmlStream = new ByteArrayInputStream(html.toString().getBytes("UTF-8"));
-				return new WebResourceResponse("text/html", "utf-8", connection.getResponseCode(), "OK", safeHeaders, modifiedHtmlStream);
-				
-			} catch (Exception e) {
-				return super.shouldInterceptRequest(view, request);
-			}
-		}
-		
-		if (url.startsWith("https://www.google.com/js/") || 
-		url.startsWith("https://www.google.com/recaptcha/") ||
-		url.startsWith("https://www.google.com/js/th/")) {
-			try {
-				HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
-				conn.setRequestProperty("User-Agent", request.getRequestHeaders().get("User-Agent"));
-				conn.setRequestProperty("Referer", "https://www.youtube.com/");
-				conn.setInstanceFollowRedirects(true);
-				conn.setConnectTimeout(10000);
-				conn.setReadTimeout(10000);
-				conn.connect();
-				
-				String mimeType = conn.getContentType();
-				String encoding = conn.getContentEncoding();
-				if (encoding == null) encoding = "utf-8";
-				if (mimeType == null) mimeType = "application/javascript";
-				
-				Map<String, String> headers = new HashMap<>();
-				headers.put("Access-Control-Allow-Origin", "*");
-				headers.put("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-				headers.put("Access-Control-Allow-Headers", "*");
-				headers.put("Cross-Origin-Resource-Policy", "cross-origin");
-				
-				return new WebResourceResponse(
-				mimeType, encoding,
-				conn.getResponseCode(), "OK",
-				headers, conn.getInputStream()
-				);
-				
-			} catch (Exception e) {
-				Log.e("YTPRO_WVC", "Google JS fetch failed: " + e.getMessage());
-			}
-		}
+    @Override
+    public void onShowCustomView(View paramView, WebChromeClient.CustomViewCallback viewCallback) {
+        // 1. Determine orientation for FULL SCREEN
+        mOriginalOrientation = activity.portrait ?
+                android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT :
+                android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
 
-		if (url.contains("youtube.com/ytpro_cdn/npm/ytpro@latest")) {
-			if (request.getMethod().equals("OPTIONS")) {
-				Map<String, String> headers = new HashMap<>();
-				headers.put("Access-Control-Allow-Origin", "*");
-				headers.put("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-				headers.put("Access-Control-Allow-Headers", "*");
-				return new WebResourceResponse("text/plain", "UTF-8", 204, "No Content", headers, null);
-			}
+        if (activity.isPip) mOriginalOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;
 
-			if (url.endsWith("/innertube.js")) {
-				return serveRawResource(R.raw.innertube, "text/javascript");
-			} else if (url.endsWith("/bgplay.js")) {
-				return serveRawResource(R.raw.bgplay, "application/javascript");
-			} else if (url.endsWith("/login.js")) {
-				return serveRawResource(R.raw.login, "application/javascript");
-			} else if (url.endsWith("/welcome.js")) {
-				return serveRawResource(R.raw.welcome, "application/javascript");
-			} else if (url.endsWith("/darkmode.js")) {
-				return serveRawResource(R.raw.darkmode, "application/javascript");
-			} else if (url.endsWith("/styles.js")) {
-				return serveRawResource(R.raw.styles, "application/javascript");
-			} else if (url.endsWith("/subscriptions.js")) {
-				return serveRawResource(R.raw.subscriptions, "application/javascript");
-			} else if (url.endsWith("/script.js")) {
-				return serveRawResource(R.raw.script, "application/javascript");
-			} else {
-				// main ytpro@latest
-				return serveRawResource(R.raw.script, "application/javascript");
-			}
-		}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+            WindowManager.LayoutParams params = activity.getWindow().getAttributes();
+            params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            activity.getWindow().setAttributes(params);
+        }
 
-		if (url.contains("youtube.com/ytpro_cdn/")) {
-			String modifiedUrl = url;
-			if (url.contains("youtube.com/ytpro_cdn/esm")) modifiedUrl = url.replace("youtube.com/ytpro_cdn/esm", "esm.sh");
-			else if (url.contains("youtube.com/ytpro_cdn/npm")) modifiedUrl = url.replace("youtube.com/ytpro_cdn", "cdn.jsdelivr.net");
-			
-			try {
-				URL newUrl = new URL(modifiedUrl);
-				HttpsURLConnection connection = (HttpsURLConnection) newUrl.openConnection();
-				connection.setUseCaches(false);
-				connection.setDefaultUseCaches(false);
-				connection.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
-				connection.addRequestProperty("Pragma", "no-cache");
-				connection.addRequestProperty("Expires", "0");
-				connection.setRequestProperty("User-Agent", "YTPRO");
-				connection.setRequestProperty("Accept", "**");
-				connection.setConnectTimeout(10000);
-				connection.setReadTimeout(10000);
-				connection.setRequestMethod("GET");
-				connection.connect();
-				
-				String mimeType = connection.getContentType() != null ? connection.getContentType() : "application/javascript";
-				String encoding = connection.getContentEncoding() != null ? connection.getContentEncoding() : "utf-8";
-				if (encoding == null) encoding = "utf-8";
-				String contentType = connection.getContentType();
-				if (contentType == null) contentType = "application/javascript";
+        if (mCustomView != null) {
+            onHideCustomView();
+            return;
+        }
 
-				Map<String, String> headers = new HashMap<>();
-				headers.put("Access-Control-Allow-Origin", "*");
-				headers.put("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-				headers.put("Access-Control-Allow-Headers", "*");
-				headers.put("Content-Type", contentType);
-				headers.put("Access-Control-Allow-Credentials", "true");
-				headers.put("Cross-Origin-Resource-Policy", "cross-origin");
-				
-				if (request.getMethod().equals("OPTIONS")) {
-					return new WebResourceResponse("text/plain", "UTF-8", 204, "No Content", headers, null);
-				}
-				
-				return new WebResourceResponse(mimeType, encoding, connection.getResponseCode(), "OK", headers, connection.getInputStream());
-			} catch (Exception e) {
-				return super.shouldInterceptRequest(view, request);
-			}
-		}
-		
-		return super.shouldInterceptRequest(view, request);
-	}
-	
-	@Override
-	public void onPageFinished(WebView view, String url) {
-		web.evaluateJavascript("if (window.trustedTypes && window.trustedTypes.createPolicy && !window.trustedTypes.defaultPolicy) {window.trustedTypes.createPolicy('default', {createHTML: (string) => string,createScriptURL: string => string, createScript: string => string, });}", null);
+        mCustomView = paramView;
+        mOriginalSystemUiVisibility = activity.getWindow().getDecorView().getSystemUiVisibility();
+        
+        // 2. Set the activity to full screen orientation (Landscape usually)
+        activity.setRequestedOrientation(mOriginalOrientation);
+        
+        // Store portrait so onHideCustomView knows what to go back to
+        mOriginalOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 
-		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/script.js';document.body.appendChild(s);})();", null);
-		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/bgplay.js';document.body.appendChild(s);})();", null);
-		web.evaluateJavascript("(function(){var s=document.createElement('script');s.type='module';s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/innertube.js';document.body.appendChild(s);})();", null);
-		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/login.js';document.body.appendChild(s);})();", null);
-		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/welcome.js';document.body.appendChild(s);})();", null);
-		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/darkmode.js';document.body.appendChild(s);})();", null);
-		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/styles.js';document.body.appendChild(s);})();", null);
-		web.evaluateJavascript("(function(){var s=document.createElement('script');s.src='https://youtube.com/ytpro_cdn/npm/ytpro@latest/subscriptions.js';document.body.appendChild(s);})();", null);
-		
-		if (!url.contains("youtube.com/watch") && !url.contains("youtube.com/shorts") && activity.isPlaying) {
-			activity.isPlaying = false;
-			activity.mediaSession = false;
-			activity.stopService(new Intent(activity.getApplicationContext(), ForegroundService.class));
-		}
-		super.onPageFinished(view, url);
-	}
+        mCustomViewCallback = viewCallback;
+        ((FrameLayout) activity.getWindow().getDecorView()).addView(mCustomView, new FrameLayout.LayoutParams(-1, -1));
+        activity.getWindow().getDecorView().setSystemUiVisibility(3846);
+    }
+
+    @Override
+    public void onHideCustomView() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+            WindowManager.LayoutParams params = activity.getWindow().getAttributes();
+            params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
+            activity.getWindow().setAttributes(params);
+        }
+
+        ((FrameLayout) activity.getWindow().getDecorView()).removeView(mCustomView);
+        mCustomView = null;
+        activity.getWindow().getDecorView().setSystemUiVisibility(mOriginalSystemUiVisibility);
+        
+        // 3. Set the activity BACK to the orientation saved right after going full screen (Portrait)
+        activity.setRequestedOrientation(mOriginalOrientation);
+        
+        // Reset state for the next time we enter full screen
+        mOriginalOrientation = activity.portrait ?
+                android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT :
+                android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
+
+        mCustomViewCallback = null;
+        web.clearFocus();
+    }
+
+    @Override
+    public void onPermissionRequest(final PermissionRequest request) {
+        if (Build.VERSION.SDK_INT > 22 && request.getOrigin().toString().contains("youtube.com")) {
+            if (activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_DENIED) {
+                activity.requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 101);
+            } else {
+                request.grant(request.getResources());
+            }
+        }
+    }
 }
