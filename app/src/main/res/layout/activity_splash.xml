@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/layout/activity_splash.xml -->
+<!--
+    WhatsApp-style splash screen for SPMODS.
+    Background: #FFFFFF  |  Accent: #00A884 (WhatsApp green)
+    Center: app logo + app name
+    Bottom: "from SPMODS" text just like WhatsApp shows "from Meta"
+-->
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- ── Center group: logo + app name ── -->
+    <LinearLayout
+        android:id="@+id/splash_center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- App icon / logo -->
+        <ImageView
+            android:id="@+id/splash_logo"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:src="@mipmap/ic_launcher"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/app_name" />
+
+    </LinearLayout>
+
+    <!-- ── Bottom section: "from SPMODS" ── -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="36dp"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/splash_from"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="from SPMODS"
+            android:textColor="#8696A0"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif"
+            android:letterSpacing="0.02"
+            android:alpha="0" />
+
+    </LinearLayout>
+
+</RelativeLayout>
