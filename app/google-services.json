@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "473967948103",
+    "firebase_url": "https://spwhatsapp-5103f-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "spwhatsapp-5103f",
+    "storage_bucket": "spwhatsapp-5103f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:473967948103:android:71f55f42bc07d644b61c62",
+        "android_client_info": {
+          "package_name": "com.spmods.spx"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoNKyaxdPMOewE-lBPJnk_fLe7oXTPm7s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
