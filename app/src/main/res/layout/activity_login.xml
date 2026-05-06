@@ -156,7 +156,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="start|center_vertical"
                         android:layout_marginLeft="14dp"
-                        android:src="@drawable/ic_email"
+                        android:src="@android:drawable/ic_dialog_email"
                         android:tint="#6B7280" />
 
                     <EditText
@@ -195,7 +195,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="start|center_vertical"
                         android:layout_marginLeft="14dp"
-                        android:src="@drawable/ic_lock"
+                        android:src="@android:drawable/ic_lock_idle_lock"
                         android:tint="#6B7280" />
 
                     <EditText
@@ -218,7 +218,7 @@
                         android:layout_height="22dp"
                         android:layout_gravity="end|center_vertical"
                         android:layout_marginRight="14dp"
-                        android:src="@drawable/ic_eye"
+                        android:src="@android:drawable/ic_menu_view"
                         android:tint="#6B7280" />
                 </FrameLayout>
 
@@ -322,7 +322,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="start|center_vertical"
                         android:layout_marginLeft="14dp"
-                        android:src="@drawable/ic_person"
+                        android:src="@android:drawable/ic_menu_myplaces"
                         android:tint="#6B7280" />
 
                     <EditText
@@ -360,7 +360,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="start|center_vertical"
                         android:layout_marginLeft="14dp"
-                        android:src="@drawable/ic_email"
+                        android:src="@android:drawable/ic_dialog_email"
                         android:tint="#6B7280" />
 
                     <EditText
@@ -398,7 +398,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="start|center_vertical"
                         android:layout_marginLeft="14dp"
-                        android:src="@drawable/ic_lock"
+                        android:src="@android:drawable/ic_lock_idle_lock"
                         android:tint="#6B7280" />
 
                     <EditText
@@ -421,7 +421,7 @@
                         android:layout_height="22dp"
                         android:layout_gravity="end|center_vertical"
                         android:layout_marginRight="14dp"
-                        android:src="@drawable/ic_eye"
+                        android:src="@android:drawable/ic_menu_view"
                         android:tint="#6B7280" />
                 </FrameLayout>
 
@@ -445,7 +445,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="start|center_vertical"
                         android:layout_marginLeft="14dp"
-                        android:src="@drawable/ic_lock"
+                        android:src="@android:drawable/ic_lock_idle_lock"
                         android:tint="#6B7280" />
 
                     <EditText
@@ -468,7 +468,7 @@
                         android:layout_height="22dp"
                         android:layout_gravity="end|center_vertical"
                         android:layout_marginRight="14dp"
-                        android:src="@drawable/ic_eye"
+                        android:src="@android:drawable/ic_menu_view"
                         android:tint="#6B7280" />
                 </FrameLayout>
 
