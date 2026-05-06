@@ -62,7 +62,7 @@ public class SplashActivity extends Activity {
 
         // --- Navigate to MainActivity after splash ---
         new Handler().postDelayed(() -> {
-            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+            Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
             // Pass through any VIEW/SEND intent that launched us
             Intent incoming = getIntent();
             if (incoming != null && incoming.getAction() != null) {
