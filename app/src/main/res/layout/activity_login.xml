@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/layout/activity_login.xml — Dark Theme -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0F1117"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingLeft="28dp"
+        android:paddingRight="28dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="40dp">
+
+        <!-- Logo -->
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/ic_launcher"
+            android:scaleType="fitCenter"
+            android:layout_marginBottom="14dp" />
+
+        <!-- App Name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Subtitle — changes per panel via code is not needed, static is fine -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign in to continue"
+            android:textSize="13sp"
+            android:textColor="#6B7280"
+            android:layout_marginBottom="44dp" />
+
+        <!-- ══════════════════════════════════ -->
+        <!--           LOGIN PANEL              -->
+        <!-- ══════════════════════════════════ -->
+        <LinearLayout
+            android:id="@+id/login_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Email -->
+            <TextView
+                style="@style/FieldLabel"
+                android:text="Email" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="18dp"
+                android:background="@drawable/bg_input_dark">
+
+                <EditText
+                    android:id="@+id/et_login_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="you@example.com"
+                    android:hintTextColor="#4B5563"
+                    android:textColor="#F9FAFB"
+                    android:textSize="15sp"
+                    android:inputType="textEmailAddress"
+                    android:background="@null"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:gravity="center_vertical" />
+            </FrameLayout>
+
+            <!-- Password -->
+            <TextView
+                style="@style/FieldLabel"
+                android:text="Password" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="32dp"
+                android:background="@drawable/bg_input_dark">
+
+                <EditText
+                    android:id="@+id/et_login_pass"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="••••••••"
+                    android:hintTextColor="#4B5563"
+                    android:textColor="#F9FAFB"
+                    android:textSize="15sp"
+                    android:inputType="textPassword"
+                    android:background="@null"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="52dp"
+                    android:gravity="center_vertical" />
+
+                <ImageView
+                    android:id="@+id/iv_toggle_login_pass"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginRight="14dp"
+                    android:src="@drawable/ic_eye"
+                    android:tint="#6B7280" />
+            </FrameLayout>
+
+            <!-- LOG IN Button -->
+            <Button
+                android:id="@+id/btn_login"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="LOG IN"
+                android:textColor="#111111"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:background="@drawable/bg_button_green"
+                android:layout_marginBottom="28dp" />
+
+            <!-- Switch -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Don't have an account?  "
+                    android:textColor="#6B7280"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tv_switch_signup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sign Up"
+                    android:textColor="#00CF9D"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════ -->
+        <!--          SIGNUP PANEL              -->
+        <!-- ══════════════════════════════════ -->
+        <LinearLayout
+            android:id="@+id/signup_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Name -->
+            <TextView
+                style="@style/FieldLabel"
+                android:text="Full Name" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="18dp"
+                android:background="@drawable/bg_input_dark">
+
+                <EditText
+                    android:id="@+id/et_signup_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Your name"
+                    android:hintTextColor="#4B5563"
+                    android:textColor="#F9FAFB"
+                    android:textSize="15sp"
+                    android:inputType="textPersonName|textCapWords"
+                    android:background="@null"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:gravity="center_vertical" />
+            </FrameLayout>
+
+            <!-- Email -->
+            <TextView
+                style="@style/FieldLabel"
+                android:text="Email" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="18dp"
+                android:background="@drawable/bg_input_dark">
+
+                <EditText
+                    android:id="@+id/et_signup_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="you@example.com"
+                    android:hintTextColor="#4B5563"
+                    android:textColor="#F9FAFB"
+                    android:textSize="15sp"
+                    android:inputType="textEmailAddress"
+                    android:background="@null"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:gravity="center_vertical" />
+            </FrameLayout>
+
+            <!-- Password -->
+            <TextView
+                style="@style/FieldLabel"
+                android:text="Password" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="18dp"
+                android:background="@drawable/bg_input_dark">
+
+                <EditText
+                    android:id="@+id/et_signup_pass"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Min. 6 characters"
+                    android:hintTextColor="#4B5563"
+                    android:textColor="#F9FAFB"
+                    android:textSize="15sp"
+                    android:inputType="textPassword"
+                    android:background="@null"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="52dp"
+                    android:gravity="center_vertical" />
+
+                <ImageView
+                    android:id="@+id/iv_toggle_signup_pass"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginRight="14dp"
+                    android:src="@drawable/ic_eye"
+                    android:tint="#6B7280" />
+            </FrameLayout>
+
+            <!-- Confirm Password -->
+            <TextView
+                style="@style/FieldLabel"
+                android:text="Confirm Password" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="32dp"
+                android:background="@drawable/bg_input_dark">
+
+                <EditText
+                    android:id="@+id/et_signup_confirm"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Re-enter password"
+                    android:hintTextColor="#4B5563"
+                    android:textColor="#F9FAFB"
+                    android:textSize="15sp"
+                    android:inputType="textPassword"
+                    android:background="@null"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="52dp"
+                    android:gravity="center_vertical" />
+
+                <ImageView
+                    android:id="@+id/iv_toggle_signup_confirm"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginRight="14dp"
+                    android:src="@drawable/ic_eye"
+                    android:tint="#6B7280" />
+            </FrameLayout>
+
+            <!-- CREATE ACCOUNT Button -->
+            <Button
+                android:id="@+id/btn_signup"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="CREATE ACCOUNT"
+                android:textColor="#111111"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08"
+                android:background="@drawable/bg_button_green"
+                android:layout_marginBottom="28dp" />
+
+            <!-- Switch -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Already have an account?  "
+                    android:textColor="#6B7280"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tv_switch_login"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Log In"
+                    android:textColor="#00CF9D"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:indeterminateTint="#00CF9D"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</ScrollView>
