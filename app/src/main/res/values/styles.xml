@@ -30,7 +30,13 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:statusBarColor">#0F1117</item>
-        <item name="android:windowLightStatusBar">false</item>
+        
+
+		
+        <item name="android:navigationBarColor">#0F1117</item>
+        <item name="android:windowLightStatusBar">true</item>
+        
+        <item name="android:windowTranslucentStatus">false</item>
     </style>
 
     <!-- Field label style used in activity_login.xml -->
