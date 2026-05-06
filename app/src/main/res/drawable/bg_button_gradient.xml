@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/bg_button_gradient.xml -->
+<!-- Pink (#FF3CAC) → Purple (#7B61FF) → Blue (#4D9FFF) horizontal gradient -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="0"
+        android:startColor="#FF3CAC"
+        android:centerColor="#7B61FF"
+        android:endColor="#4D9FFF" />
+    <corners android:radius="14dp" />
+</shape>
