@@ -6,5 +6,24 @@
 	<color name="colorControlNormal">#000000</color>
 	<color name="black">#DD000000</color>
     <color name="white">#FFFFFF</color>
+
+	    <color name="bg_primary">#0A0A0A</color>
+    <color name="bg_card">#141414</color>
+    <color name="bg_tool_icon">#1E1E1E</color>
+
+    <!-- Brand colors -->
+    <color name="spx_pink">#FF2DC8</color>
+    <color name="spx_purple">#CC00FF</color>
+    <color name="spx_blue">#44CCFF</color>
+    <color name="spx_violet">#7B5CF0</color>
+
+    <!-- Text colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#BBBBBB</color>
+    <color name="text_muted">#777777</color>
+
+    <!-- Tool icon tints -->
+    <color name="icon_pink_purple">#CC44FF</color>
+    <color name="icon_blue_cyan">#44CCFF</color>
 </resources>
 
