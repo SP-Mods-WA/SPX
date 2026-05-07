@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/btn_new_project.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <gradient
+        android:angle="0"
+        android:startColor="#FF2DC8"
+        android:centerColor="#CC00FF"
+        android:endColor="#7722FF"
+        android:type="linear" />
+
+    <corners android:radius="22dp" />
+
+</shape>
