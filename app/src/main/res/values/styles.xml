@@ -48,5 +48,27 @@
         <item name="android:letterSpacing">0.08</item>
         <item name="android:layout_marginBottom">8dp</item>
     </style>
+
+
+	<!-- Base app theme -->
+    <style name="Theme.SPX" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#FF00CC</item>
+        <item name="colorPrimaryVariant">#7B5CF0</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#7B5CF0</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="android:windowBackground">#05030F</item>
+        <item name="android:statusBarColor">#05030F</item>
+        <item name="android:navigationBarColor">#05030F</item>
+    </style>
+
+    <!-- Fullscreen theme for VideoPlayerActivity -->
+    <style name="Theme.SPX.Fullscreen" parent="Theme.SPX">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
 	
 </resources>
