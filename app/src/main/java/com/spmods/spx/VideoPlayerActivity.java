@@ -13,8 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class VideoPlayerActivity extends AppCompatActivity {
 
-    public static final String EXTRA_VIDEO_URI   = "extra_video_uri";
-    public static final String EXTRA_VIDEO_TITLE = "extra_video_title";
+    public static final String EXTRA_VIDEO_URI      = "extra_video_uri";
+    public static final String EXTRA_VIDEO_TITLE    = "extra_video_title";
+    public static final String EXTRA_START_POSITION = "extra_start_position";
 
     private VideoView videoView;
     private MediaController mediaController;
@@ -24,8 +25,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Full screen, keep screen on
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -33,39 +32,37 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_video_player);
 
-        videoView    = findViewById(R.id.videoView);
+        videoView     = findViewById(R.id.videoView);
         tvPlayerTitle = findViewById(R.id.tvPlayerTitle);
-        ibBack       = findViewById(R.id.ibBack);
+        ibBack        = findViewById(R.id.ibBack);
 
         String uriString = getIntent().getStringExtra(EXTRA_VIDEO_URI);
         String title     = getIntent().getStringExtra(EXTRA_VIDEO_TITLE);
+        int startPos     = getIntent().getIntExtra(EXTRA_START_POSITION, 0);
 
         if (title != null) tvPlayerTitle.setText(title);
-
         ibBack.setOnClickListener(v -> onBackPressed());
 
         if (uriString != null) {
-            Uri videoUri = Uri.parse(uriString);
-            setupPlayer(videoUri);
+            setupPlayer(Uri.parse(uriString), startPos);
         } else {
             finish();
         }
     }
 
-    private void setupPlayer(Uri videoUri) {
+    private void setupPlayer(Uri videoUri, int startPos) {
         mediaController = new MediaController(this);
         mediaController.setAnchorView(videoView);
-
         videoView.setMediaController(mediaController);
         videoView.setVideoURI(videoUri);
 
         videoView.setOnPreparedListener(mp -> {
             mp.setLooping(false);
+            if (startPos > 0) videoView.seekTo(startPos);
             videoView.start();
         });
 
-        videoView.setOnCompletionListener(mp ->
-                ibBack.setVisibility(View.VISIBLE));
+        videoView.setOnCompletionListener(mp -> finish());
 
         videoView.setOnErrorListener((mp, what, extra) -> {
             tvPlayerTitle.setText("Cannot play this video");
@@ -76,24 +73,18 @@ public class VideoPlayerActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (videoView != null && videoView.isPlaying()) {
-            videoView.pause();
-        }
+        if (videoView != null && videoView.isPlaying()) videoView.pause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (videoView != null) {
-            videoView.resume();
-        }
+        if (videoView != null) videoView.resume();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (videoView != null) {
-            videoView.stopPlayback();
-        }
+        if (videoView != null) videoView.stopPlayback();
     }
 }
