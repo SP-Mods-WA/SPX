@@ -1,4 +1,4 @@
-package com.spmods.spx.utils;
+package com.spmods.spx;
 
 import android.content.ContentUris;
 import android.content.Context;
@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 
-import com.spmods.spx.model.VideoModel;
+import com.spmods.spx.VideoModel;
 
 import java.util.ArrayList;
 import java.util.List;
