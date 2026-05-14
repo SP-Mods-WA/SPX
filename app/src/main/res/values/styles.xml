@@ -1,45 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-         <style name="AppTheme"	parent="@android:style/Theme.Material.NoActionBar">
-		<item name="android:colorPrimary">@color/colorPrimary</item>
-		<item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
-		<item name="android:colorAccent">@color/colorAccent</item>
-		<item name="android:colorControlHighlight">@color/colorControlHighlight</item>
-		<item name="android:colorControlNormal">@color/colorControlNormal</item>
-		<item name="android:statusBarColor">@color/colorPrimary</item>
-                <item name="android:windowTranslucentStatus">false</item>
-		<item name="android:windowLightStatusBar">false</item>
-	</style>
-	<style name="NoStatusBar" parent="AppTheme">
-		<item name="android:windowFullscreen">true</item>
-	</style>
-		    <style name="SplashTheme" parent="@android:style/Theme.Material.NoActionBar">
+
+    <!-- AppTheme: Theme.Material -> Theme.AppCompat fix කළා -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <style name="NoStatusBar" parent="AppTheme">
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- SplashTheme: Theme.Material -> Theme.AppCompat fix කළා -->
+    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:statusBarColor">@android:color/black</item>
         <item name="android:navigationBarColor">@android:color/black</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowTranslucentStatus">false</item>
-    <item name="android:windowSplashScreenBackground">@android:color/transparent</item>
-    <item name="android:windowSplashScreenAnimatedIcon">@null</item>
-    <item name="android:windowDisablePreview">true</item>
-</style>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
 
-	    <!-- LoginTheme: dark status bar -->
+    <!-- LoginTheme -->
     <style name="LoginTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">#05030F</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:statusBarColor">#05030F</item>
-        
-
-		
         <item name="android:navigationBarColor">#05030F</item>
         <item name="android:windowLightStatusBar">false</item>
-        
-        
     </style>
 
-    <!-- Field label style used in activity_login.xml -->
+    <!-- Field label style -->
     <style name="FieldLabel">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -49,9 +46,7 @@
         <item name="android:layout_marginBottom">8dp</item>
     </style>
 
-
-	<!-- Base app theme -->
-        <!-- Base app theme - AppCompat compatible -->
+    <!-- Theme.SPX -->
     <style name="Theme.SPX" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">#FF00CC</item>
         <item name="colorPrimaryDark">#05030F</item>
@@ -61,7 +56,7 @@
         <item name="android:navigationBarColor">#05030F</item>
     </style>
 
-    <!-- Fullscreen theme for VideoPlayerActivity -->
+    <!-- Theme.SPX.Fullscreen -->
     <style name="Theme.SPX.Fullscreen" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
@@ -70,5 +65,4 @@
         <item name="android:windowBackground">@android:color/black</item>
     </style>
 
-	
 </resources>
