@@ -1,4 +1,4 @@
-package com.spmods.spx.adapter;
+package com.spmods.spx;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -16,7 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.spmods.spx.R;
-import com.spmods.spx.model.VideoModel;
+import com.spmods.spx.VideoModel;
 
 import java.util.List;
 
