@@ -5,6 +5,10 @@
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+
 	
 <uses-permission
     android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -45,61 +49,27 @@
     android:screenOrientation="portrait"
     android:windowSoftInputMode="adjustResize" />
 		
-		<activity
-			android:name=".MainActivity"
-			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
-			android:hardwareAccelerated="true"
-			android:supportsPictureInPicture="true"
-		        android:theme="@style/AppTheme"
-                        android:exported="true"
-			android:screenOrientation="unspecified">
-			
-			<intent-filter>
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="http" />
-				<data android:scheme="https" />
-				<data android:host="youtube.com" />
-				<data android:host="*.youtube.com" />
-				<data android:host="youtu.be" />
-			</intent-filter>
-			<intent-filter>
-				<action android:name="android.intent.action.SEND" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<data android:mimeType="text/plain" />
-			</intent-filter>
-		</activity>
-		<activity
-			android:name=".DownloadFromIntentFilter"
-			android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
-			android:hardwareAccelerated="true"
-			android:supportsPictureInPicture="true"
-			android:theme="@style/AppTheme"
-			android:exported="true"
-			android:screenOrientation="unspecified">
-			<intent-filter android:label="@string/dl">
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="http" />
-				<data android:scheme="https" />
-				<data android:host="youtube.com" />
-				<data android:host="*.youtube.com" />
-				<data android:host="youtu.be" />
-			</intent-filter>
-			<intent-filter android:label="@string/dl">
-				<action android:name="android.intent.action.SEND" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<data android:mimeType="text/plain" />
-			</intent-filter>
-		</activity>
-		<service
-			android:name=".ForegroundService"
-			android:enabled="true"
-			android:exported="true"
-			android:foregroundServiceType="mediaPlayback"
-			/>
+		        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".VideoPlayerActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="sensor"
+            android:theme="@style/Theme.SPX.Fullscreen" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+
 
 		<receiver android:name=".utils.NotificationActionReceiver"/>
 	</application>
