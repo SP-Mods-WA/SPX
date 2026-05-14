@@ -197,50 +197,7 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <LinearLayout android:layout_width="75dp" android:layout_height="wrap_content"
-                    android:gravity="center" android:orientation="vertical" android:layout_marginEnd="10dp">
-                    <FrameLayout android:layout_width="56dp" android:layout_height="56dp" android:background="@drawable/tool_card_bg">
-                        <ImageView android:layout_width="28dp" android:layout_height="28dp" android:layout_gravity="center" android:src="@drawable/ic_trim" android:tint="#FF00CC"/>
-                    </FrameLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="Trim" android:textColor="#CCCCCC" android:textSize="11sp"/>
-                </LinearLayout>
-
-                <LinearLayout android:layout_width="75dp" android:layout_height="wrap_content"
-                    android:gravity="center" android:orientation="vertical" android:layout_marginEnd="10dp">
-                    <FrameLayout android:layout_width="56dp" android:layout_height="56dp" android:background="@drawable/tool_card_bg">
-                        <ImageView android:layout_width="28dp" android:layout_height="28dp" android:layout_gravity="center" android:src="@drawable/ic_merge" android:tint="#7B5CF0"/>
-                    </FrameLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="Merge" android:textColor="#CCCCCC" android:textSize="11sp"/>
-                </LinearLayout>
-
-                <LinearLayout android:layout_width="75dp" android:layout_height="wrap_content"
-                    android:gravity="center" android:orientation="vertical" android:layout_marginEnd="10dp">
-                    <FrameLayout android:layout_width="56dp" android:layout_height="56dp" android:background="@drawable/tool_card_bg">
-                        <ImageView android:layout_width="28dp" android:layout_height="28dp" android:layout_gravity="center" android:src="@drawable/ic_speed" android:tint="#00BFFF"/>
-                    </FrameLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="Speed" android:textColor="#CCCCCC" android:textSize="11sp"/>
-                </LinearLayout>
-
-                <LinearLayout android:layout_width="75dp" android:layout_height="wrap_content"
-                    android:gravity="center" android:orientation="vertical" android:layout_marginEnd="10dp">
-                    <FrameLayout android:layout_width="56dp" android:layout_height="56dp" android:background="@drawable/tool_card_bg">
-                        <ImageView android:layout_width="28dp" android:layout_height="28dp" android:layout_gravity="center" android:src="@drawable/ic_music" android:tint="#FF9500"/>
-                    </FrameLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="Music" android:textColor="#CCCCCC" android:textSize="11sp"/>
-                </LinearLayout>
-
-            </LinearLayout>
-        </HorizontalScrollView>
     </LinearLayout>
 
     <!-- ===== MY VIDEOS HEADER (fixed) ===== -->
