@@ -1,4 +1,4 @@
-package com.spmods.spx.model;
+package com.spmods.spx;
 
 import android.net.Uri;
 
