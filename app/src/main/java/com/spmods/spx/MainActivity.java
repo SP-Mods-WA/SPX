@@ -2,12 +2,14 @@ package com.spmods.spx;
 
 import android.Manifest;
 import android.app.PictureInPictureParams;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.util.Rational;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -28,7 +30,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVideoClickListener {
+public class MainActivity extends AppCompatActivity
+        implements VideoAdapter.OnVideoClickListener, AudioService.OnAudioListener {
 
     private static final int PERMISSION_REQUEST_CODE = 100;
     private static final int CONTROLS_HIDE_DELAY     = 3000;
@@ -37,9 +40,10 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
     private TextView tvEmptyState;
     private VideoAdapter videoAdapter;
     private List<VideoModel> videoList;
-    private int currentIndex = -1;
+    private int currentIndex  = -1;
+    private int savedPosition = 0;
 
-    // Hero player
+    // Hero player views
     private VideoView heroVideoView;
     private LinearLayout llHeroOverlay;
     private FrameLayout flControls;
@@ -50,19 +54,35 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
     private ImageView ivPlayPause;
     private ImageView ivRewind;
     private ImageView ivForward;
-    private ImageView ivFullscreen;
     private ImageView ivClose;
 
     // Action buttons
     private ImageView ivAutoNext;
-    private TextView tvAutoNext;
+    private TextView  tvAutoNext;
     private ImageView ivRepeat;
-    private TextView tvRepeat;
+    private TextView  tvRepeat;
+    private ImageView ivBgPlay;
+    private TextView  tvBgPlay;
 
-    private boolean isPlaying      = false;
+    private boolean isPlaying       = false;
     private boolean controlsVisible = false;
     private boolean autoNextEnabled = false;
     private boolean repeatEnabled   = false;
+    private boolean bgPlayEnabled   = false;  // Background play toggle
+    private boolean isBound         = false;
+
+    // AudioService
+    private AudioService audioService;
+    private final ServiceConnection serviceConn = new ServiceConnection() {
+        @Override public void onServiceConnected(ComponentName n, IBinder b) {
+            audioService = ((AudioService.AudioBinder) b).getService();
+            audioService.setListener(MainActivity.this);
+            isBound = true;
+        }
+        @Override public void onServiceDisconnected(ComponentName n) {
+            isBound = false;
+        }
+    };
 
     private final Handler seekHandler = new Handler();
     private final Handler hideHandler = new Handler();
@@ -82,17 +102,18 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
         }
     };
 
-    private final Runnable hideControls = () -> {
-        if (isPlaying) fadeOutControls();
-    };
+    private final Runnable hideControls = () -> { if (isPlaying) fadeOutControls(); };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         initViews();
         checkPermissionAndLoadVideos();
+
+        // Bind AudioService
+        Intent svcIntent = new Intent(this, AudioService.class);
+        bindService(svcIntent, serviceConn, BIND_AUTO_CREATE);
 
         // Header
         findViewById(R.id.ivNotification).setOnClickListener(v ->
@@ -100,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
         findViewById(R.id.ivSettings).setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
 
-        // Video tap = toggle controls
+        // Banner tap
         heroVideoView.setOnClickListener(v -> toggleControls());
         flControls.setOnClickListener(v -> toggleControls());
 
@@ -126,18 +147,15 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
             scheduleHide();
         });
         ivForward.setOnClickListener(v -> {
-            heroVideoView.seekTo(Math.min(heroVideoView.getCurrentPosition() + 10000,
-                    heroVideoView.getDuration()));
+            heroVideoView.seekTo(Math.min(
+                    heroVideoView.getCurrentPosition() + 10000, heroVideoView.getDuration()));
             scheduleHide();
         });
 
         // SeekBar
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar s, int p, boolean fromUser) {
-                if (fromUser) {
-                    heroVideoView.seekTo(p);
-                    tvCurrentTime.setText(formatTime(p));
-                }
+                if (fromUser) { heroVideoView.seekTo(p); tvCurrentTime.setText(formatTime(p)); }
             }
             @Override public void onStartTrackingTouch(SeekBar s) {
                 hideHandler.removeCallbacks(hideControls);
@@ -145,38 +163,24 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
             @Override public void onStopTrackingTouch(SeekBar s) { scheduleHide(); }
         });
 
-        // Fullscreen (inside controls overlay)
-        ivFullscreen.setOnClickListener(v -> openFullscreen());
-
         // Close
         ivClose.setOnClickListener(v -> stopHeroVideo());
 
-        // ---- ACTION BUTTONS ----
-
-        // Auto Next toggle
+        // Action buttons
         ivAutoNext.setOnClickListener(v -> {
             autoNextEnabled = !autoNextEnabled;
             updateAutoNextUI();
-            Toast.makeText(this,
-                    autoNextEnabled ? "Auto Next ON" : "Auto Next OFF",
+            Toast.makeText(this, autoNextEnabled ? "Auto Next ON" : "Auto Next OFF",
                     Toast.LENGTH_SHORT).show();
         });
 
-        // Share
         findViewById(R.id.btnShare).setOnClickListener(v -> shareCurrentVideo());
-
-        // PiP
         findViewById(R.id.btnPip).setOnClickListener(v -> enterPip());
-
-        // Fullscreen action button
         findViewById(R.id.btnFullscreenAction).setOnClickListener(v -> openFullscreen());
-
-        // Repeat toggle
         findViewById(R.id.btnRepeat).setOnClickListener(v -> {
             repeatEnabled = !repeatEnabled;
             updateRepeatUI();
-            Toast.makeText(this,
-                    repeatEnabled ? "Repeat ON" : "Repeat OFF",
+            Toast.makeText(this, repeatEnabled ? "Repeat ON" : "Repeat OFF",
                     Toast.LENGTH_SHORT).show();
         });
     }
@@ -194,7 +198,6 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
         ivPlayPause       = findViewById(R.id.ivPlayPause);
         ivRewind          = findViewById(R.id.ivRewind);
         ivForward         = findViewById(R.id.ivForward);
-        ivFullscreen      = findViewById(R.id.ivFullscreen);
         ivClose           = findViewById(R.id.ivClose);
         ivAutoNext        = findViewById(R.id.ivAutoNext);
         tvAutoNext        = findViewById(R.id.tvAutoNext);
@@ -207,23 +210,21 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
 
     @Override
     public void onVideoClick(VideoModel video) {
-        if (videoList != null) {
-            currentIndex = videoList.indexOf(video);
-        }
-        playVideo(video);
+        currentIndex  = videoList.indexOf(video);
+        savedPosition = 0;
+        playVideo(video, 0);
     }
 
-    private void playVideo(VideoModel video) {
+    private void playVideo(VideoModel video, int startPos) {
         llHeroOverlay.setVisibility(View.GONE);
         heroVideoView.setVisibility(View.VISIBLE);
         tvNowPlayingTitle.setText(video.getTitle());
         ivPlayPause.setImageResource(R.drawable.ic_pause);
-
-        // Reset seekbar
         seekBar.setProgress(0);
         tvCurrentTime.setText("00:00");
         tvDuration.setText("00:00");
         seekHandler.removeCallbacks(seekUpdater);
+        hideHandler.removeCallbacks(hideControls);
 
         heroVideoView.stopPlayback();
         heroVideoView.setVideoURI(video.getUri());
@@ -231,6 +232,7 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
             mp.setLooping(repeatEnabled);
             mp.setVideoScalingMode(
                     android.media.MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+            if (startPos > 0) heroVideoView.seekTo(startPos);
             heroVideoView.start();
             isPlaying = true;
             seekHandler.post(seekUpdater);
@@ -242,13 +244,10 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
             isPlaying = false;
             seekHandler.removeCallbacks(seekUpdater);
             ivPlayPause.setImageResource(R.drawable.ic_play);
-
-            if (repeatEnabled) {
-                // looping handled by MediaPlayer
-            } else if (autoNextEnabled && videoList != null && currentIndex + 1 < videoList.size()) {
+            if (!repeatEnabled && autoNextEnabled
+                    && videoList != null && currentIndex + 1 < videoList.size()) {
                 currentIndex++;
-                VideoModel next = videoList.get(currentIndex);
-                playVideo(next);
+                playVideo(videoList.get(currentIndex), 0);
             } else {
                 showControls();
             }
@@ -257,14 +256,26 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
 
     private void openFullscreen() {
         if (currentIndex < 0 || videoList == null) return;
-        VideoModel video = videoList.get(currentIndex);
-        int pos = heroVideoView.getCurrentPosition();
+        savedPosition = heroVideoView.getCurrentPosition();
         heroVideoView.pause();
+        isPlaying = false;
+        VideoModel video = videoList.get(currentIndex);
         Intent intent = new Intent(this, VideoPlayerActivity.class);
-        intent.putExtra(VideoPlayerActivity.EXTRA_VIDEO_URI, video.getUri().toString());
+        intent.putExtra(VideoPlayerActivity.EXTRA_VIDEO_URI,   video.getUri().toString());
         intent.putExtra(VideoPlayerActivity.EXTRA_VIDEO_TITLE, video.getTitle());
-        intent.putExtra(VideoPlayerActivity.EXTRA_START_POSITION, pos);
-        startActivity(intent);
+        intent.putExtra(VideoPlayerActivity.EXTRA_START_POSITION, savedPosition);
+        startActivityForResult(intent, 1001);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1001 && currentIndex >= 0 && videoList != null) {
+            int returnPos = savedPosition;
+            if (data != null)
+                returnPos = data.getIntExtra(VideoPlayerActivity.EXTRA_START_POSITION, savedPosition);
+            playVideo(videoList.get(currentIndex), returnPos);
+        }
     }
 
     private void shareCurrentVideo() {
@@ -277,49 +288,98 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
         share.setType("video/*");
         share.putExtra(Intent.EXTRA_STREAM, video.getUri());
         share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivity(Intent.createChooser(share, "Share Video"));
+        Intent chooser = Intent.createChooser(share, "Share Video");
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(chooser);
     }
 
     private void enterPip() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (currentIndex < 0 || videoList == null) {
+            if (currentIndex < 0) {
                 Toast.makeText(this, "Play a video first", Toast.LENGTH_SHORT).show();
                 return;
             }
-            PictureInPictureParams params = new PictureInPictureParams.Builder()
-                    .setAspectRatio(new Rational(16, 9))
-                    .build();
-            enterPictureInPictureMode(params);
+            try {
+                PictureInPictureParams params = new PictureInPictureParams.Builder()
+                        .setAspectRatio(new Rational(16, 9)).build();
+                enterPictureInPictureMode(params);
+            } catch (Exception e) {
+                Toast.makeText(this, "PiP not supported on this device", Toast.LENGTH_SHORT).show();
+            }
         } else {
             Toast.makeText(this, "PiP requires Android 8.0+", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void updateAutoNextUI() {
-        if (autoNextEnabled) {
-            ivAutoNext.setColorFilter(getResources().getColor(android.R.color.white));
-            tvAutoNext.setTextColor(0xFFFFFFFF);
-        } else {
-            ivAutoNext.setColorFilter(0xFFAAAAAA);
-            tvAutoNext.setTextColor(0xFFAAAAAA);
+    // ── AudioService callbacks ─────────────────────
+    @Override public void onPlaybackStateChanged(boolean playing) { }
+    @Override public void onCompletion() {
+        // Auto next via service
+        runOnUiThread(() -> {
+            if (autoNextEnabled && videoList != null && currentIndex + 1 < videoList.size()) {
+                currentIndex++;
+                VideoModel next = videoList.get(currentIndex);
+                if (isBound) {
+                    audioService.startAudio(next.getUri(), next.getTitle(), 0);
+                }
+            }
+        });
+    }
+
+    // ── App goes to background - start AudioService ─
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (currentIndex >= 0 && videoList != null && isPlaying) {
+            int pos = heroVideoView.getCurrentPosition();
+            heroVideoView.pause();
+            // Start background audio from same position
+            VideoModel video = videoList.get(currentIndex);
+            Intent svcIntent = new Intent(this, AudioService.class);
+            svcIntent.setAction(AudioService.ACTION_PLAY);
+            svcIntent.putExtra(AudioService.EXTRA_URI,      video.getUri().toString());
+            svcIntent.putExtra(AudioService.EXTRA_TITLE,    video.getTitle());
+            svcIntent.putExtra(AudioService.EXTRA_POSITION, pos);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(svcIntent);
+            } else {
+                startService(svcIntent);
+            }
         }
     }
 
-    private void updateRepeatUI() {
-        if (repeatEnabled) {
-            ivRepeat.setColorFilter(0xFFFF00CC);
-            tvRepeat.setTextColor(0xFFFF00CC);
-        } else {
-            ivRepeat.setColorFilter(0xFFAAAAAA);
-            tvRepeat.setTextColor(0xFFAAAAAA);
-        }
-        // Apply to current playback
-        if (heroVideoView != null && heroVideoView.isPlaying()) {
-            // Will take effect on next prepare
+    // ── App comes back - stop AudioService, resume video ─
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Stop background audio
+        stopService(new Intent(this, AudioService.class));
+
+        // Resume video if was playing
+        if (currentIndex >= 0 && videoList != null && !isPlaying) {
+            heroVideoView.resume();
+            isPlaying = true;
+            ivPlayPause.setImageResource(R.drawable.ic_pause);
+            seekHandler.post(seekUpdater);
         }
     }
 
-    // ---- Controls show/hide ----
+    @Override
+    protected void onPause() {
+        super.onPause();
+        seekHandler.removeCallbacks(seekUpdater);
+        hideHandler.removeCallbacks(hideControls);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (isBound) { unbindService(serviceConn); isBound = false; }
+        seekHandler.removeCallbacks(seekUpdater);
+        hideHandler.removeCallbacks(hideControls);
+    }
+
+    // ── Controls ──────────────────────────────────
     private void toggleControls() {
         if (controlsVisible) fadeOutControls();
         else { showControls(); if (isPlaying) scheduleHide(); }
@@ -344,8 +404,7 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
 
     private void stopHeroVideo() {
         heroVideoView.stopPlayback();
-        isPlaying = false;
-        currentIndex = -1;
+        isPlaying = false; currentIndex = -1; savedPosition = 0;
         seekHandler.removeCallbacks(seekUpdater);
         hideHandler.removeCallbacks(hideControls);
         heroVideoView.setVisibility(View.GONE);
@@ -356,9 +415,20 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
         seekBar.setProgress(0);
         tvCurrentTime.setText("00:00");
         tvDuration.setText("00:00");
+        stopService(new Intent(this, AudioService.class));
     }
 
-    // ---- Permission / Load ----
+    private void updateAutoNextUI() {
+        int c = autoNextEnabled ? 0xFFFFFFFF : 0xFFAAAAAA;
+        ivAutoNext.setColorFilter(c); tvAutoNext.setTextColor(c);
+    }
+
+    private void updateRepeatUI() {
+        int c = repeatEnabled ? 0xFFFF00CC : 0xFFAAAAAA;
+        ivRepeat.setColorFilter(c); tvRepeat.setTextColor(c);
+    }
+
+    // ── Permission / Load ─────────────────────────
     private void checkPermissionAndLoadVideos() {
         String perm = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 ? Manifest.permission.READ_MEDIA_VIDEO
@@ -383,34 +453,6 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (currentIndex >= 0 && !heroVideoView.isPlaying()) {
-            heroVideoView.resume();
-            isPlaying = true;
-            ivPlayPause.setImageResource(R.drawable.ic_pause);
-            seekHandler.post(seekUpdater);
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (heroVideoView != null && heroVideoView.isPlaying()) heroVideoView.pause();
-        isPlaying = false;
-        seekHandler.removeCallbacks(seekUpdater);
-        hideHandler.removeCallbacks(hideControls);
-    }
-
-    @Override
-    public void onUserLeaveHint() {
-        super.onUserLeaveHint();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && currentIndex >= 0) {
-            enterPip();
-        }
-    }
-
     private String formatTime(int ms) {
         int s = ms / 1000;
         return String.format(Locale.getDefault(), "%02d:%02d", s / 60, s % 60);
@@ -421,9 +463,8 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
                                            @NonNull int[] results) {
         super.onRequestPermissionsResult(req, perms, results);
         if (req == PERMISSION_REQUEST_CODE && results.length > 0
-                && results[0] == PackageManager.PERMISSION_GRANTED) {
-            loadVideos();
-        } else {
+                && results[0] == PackageManager.PERMISSION_GRANTED) loadVideos();
+        else {
             tvEmptyState.setVisibility(View.VISIBLE);
             tvEmptyState.setText("Storage permission required.");
         }
