@@ -6,7 +6,7 @@
     android:background="#05030F"
     android:orientation="vertical">
 
-    <!-- ===== HEADER ===== -->
+    <!-- HEADER -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -54,23 +54,18 @@
             android:src="@drawable/ic_settings" />
     </LinearLayout>
 
-    <!-- ===== HERO BANNER - FULL VIDEO PLAYER ===== -->
+    <!-- HERO BANNER -->
     <FrameLayout
+        android:id="@+id/flHeroBanner"
         android:layout_width="match_parent"
         android:layout_height="220dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-        android:background="#000000"
+        android:background="@drawable/hero_rounded_bg"
         android:clipToOutline="true">
 
-        <!-- Rounded background -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/hero_rounded_bg" />
-
-        <!-- Placeholder shown before video selected -->
+        <!-- Placeholder -->
         <LinearLayout
             android:id="@+id/llHeroOverlay"
             android:layout_width="match_parent"
@@ -78,7 +73,6 @@
             android:gravity="center"
             android:orientation="vertical"
             android:background="@drawable/hero_bg_gradient">
-
             <ImageView
                 android:layout_width="100dp"
                 android:layout_height="100dp"
@@ -101,7 +95,7 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- VideoView fills entire banner -->
+        <!-- VideoView -->
         <VideoView
             android:id="@+id/heroVideoView"
             android:layout_width="match_parent"
@@ -109,135 +103,150 @@
             android:layout_gravity="center"
             android:visibility="gone" />
 
-        <!-- Dark gradient overlay at bottom for controls -->
-        <View
-            android:id="@+id/vControlsOverlay"
+        <!-- Controls overlay (tap to show/hide) -->
+        <FrameLayout
+            android:id="@+id/flControls"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:layout_gravity="bottom"
-            android:background="@drawable/gradient_bottom"
-            android:visibility="gone" />
-
-        <!-- Controls bar -->
-        <LinearLayout
-            android:id="@+id/llControls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:orientation="vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="10dp"
+            android:layout_height="match_parent"
+            android:background="#44000000"
             android:visibility="gone">
 
-            <!-- Title -->
-            <TextView
-                android:id="@+id/tvNowPlayingTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Now Playing"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:paddingBottom="6dp"/>
+            <!-- Close button (top right) -->
+            <ImageView
+                android:id="@+id/ivClose"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_close"
+                android:tint="#FFFFFF"
+                android:background="@drawable/btn_circle_dark"
+                android:clickable="true"
+                android:focusable="true"/>
 
-            <!-- SeekBar -->
-            <SeekBar
-                android:id="@+id/seekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:progressTint="#FF00CC"
-                android:thumbTint="#FF00CC"
-                android:paddingBottom="6dp"/>
+            <!-- Fullscreen button (bottom right) -->
+            <ImageView
+                android:id="@+id/ivFullscreen"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="12dp"
+                android:layout_marginBottom="10dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_fullscreen"
+                android:tint="#FFFFFF"
+                android:background="@drawable/btn_circle_dark"
+                android:clickable="true"
+                android:focusable="true"/>
 
-            <!-- Buttons row -->
+            <!-- Center play/pause + rewind/forward -->
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <!-- Current time -->
-                <TextView
-                    android:id="@+id/tvCurrentTime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="00:00"
-                    android:textColor="#CCCCCC"
-                    android:textSize="10sp" />
-
-                <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
-
-                <!-- Rewind 10s -->
                 <ImageView
                     android:id="@+id/ivRewind"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:padding="4dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:padding="6dp"
                     android:src="@drawable/ic_replay_10"
                     android:tint="#FFFFFF"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:focusable="true"/>
 
-                <!-- Play/Pause -->
                 <ImageView
                     android:id="@+id/ivPlayPause"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:padding="4dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:padding="6dp"
                     android:src="@drawable/ic_pause"
                     android:tint="#FFFFFF"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@drawable/btn_circle_pink"
                     android:clickable="true"
                     android:focusable="true"/>
 
-                <!-- Forward 10s -->
                 <ImageView
                     android:id="@+id/ivForward"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:padding="4dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:padding="6dp"
                     android:src="@drawable/ic_forward_10"
                     android:tint="#FFFFFF"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:focusable="true"/>
-
-                <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
-
-                <!-- Duration -->
-                <TextView
-                    android:id="@+id/tvDuration"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="00:00"
-                    android:textColor="#CCCCCC"
-                    android:textSize="10sp" />
-
-                <!-- Fullscreen -->
-                <ImageView
-                    android:id="@+id/ivFullscreen"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:padding="4dp"
-                    android:src="@drawable/ic_fullscreen"
-                    android:tint="#FFFFFF"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"/>
-
             </LinearLayout>
-        </LinearLayout>
+
+            <!-- Bottom: title + seekbar + time -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:orientation="vertical"
+                android:background="@drawable/gradient_bottom"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="10dp"
+                android:paddingTop="16dp">
+
+                <TextView
+                    android:id="@+id/tvNowPlayingTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Now Playing"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:paddingBottom="4dp"/>
+
+                <SeekBar
+                    android:id="@+id/seekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:progressTint="#FF00CC"
+                    android:thumbTint="#FF00CC"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="2dp">
+
+                    <TextView
+                        android:id="@+id/tvCurrentTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="00:00"
+                        android:textColor="#CCCCCC"
+                        android:textSize="10sp" />
+
+                    <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
+
+                    <TextView
+                        android:id="@+id/tvDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="00:00"
+                        android:textColor="#CCCCCC"
+                        android:textSize="10sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </FrameLayout>
 
     </FrameLayout>
 
-    <!-- ===== TOOLS SECTION ===== -->
+    <!-- TOOLS -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -273,7 +282,7 @@
 
     </LinearLayout>
 
-    <!-- ===== MY VIDEOS HEADER ===== -->
+    <!-- MY VIDEOS HEADER -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -318,7 +327,7 @@
         android:textSize="14sp"
         android:visibility="gone" />
 
-    <!-- ===== VIDEO LIST (scrollable) ===== -->
+    <!-- VIDEO LIST -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvVideoList"
         android:layout_width="match_parent"
