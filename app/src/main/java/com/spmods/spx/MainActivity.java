@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -27,6 +28,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVideoClickListener {
 
     private static final int PERMISSION_REQUEST_CODE = 100;
+    private static final int CONTROLS_HIDE_DELAY = 3000; // 3 seconds
 
     private RecyclerView rvVideoList;
     private TextView tvEmptyState;
@@ -35,8 +37,7 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
     // Hero player views
     private VideoView heroVideoView;
     private LinearLayout llHeroOverlay;
-    private LinearLayout llControls;
-    private View vControlsOverlay;
+    private FrameLayout flControls;
     private TextView tvNowPlayingTitle;
     private TextView tvCurrentTime;
     private TextView tvDuration;
@@ -45,26 +46,33 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
     private ImageView ivRewind;
     private ImageView ivForward;
     private ImageView ivFullscreen;
+    private ImageView ivClose;
 
     private VideoModel currentVideo;
     private boolean isPlaying = false;
-    private final Handler seekHandler = new Handler();
+    private boolean controlsVisible = false;
+
+    private final Handler seekHandler  = new Handler();
+    private final Handler hideHandler  = new Handler();
 
     private final Runnable seekUpdater = new Runnable() {
-        @Override
-        public void run() {
+        @Override public void run() {
             if (heroVideoView != null && isPlaying) {
-                int current = heroVideoView.getCurrentPosition();
-                int total   = heroVideoView.getDuration();
+                int cur   = heroVideoView.getCurrentPosition();
+                int total = heroVideoView.getDuration();
                 if (total > 0) {
                     seekBar.setMax(total);
-                    seekBar.setProgress(current);
-                    tvCurrentTime.setText(formatTime(current));
+                    seekBar.setProgress(cur);
+                    tvCurrentTime.setText(formatTime(cur));
                     tvDuration.setText(formatTime(total));
                 }
                 seekHandler.postDelayed(this, 500);
             }
         }
+    };
+
+    private final Runnable hideControls = () -> {
+        if (isPlaying) fadeOutControls();
     };
 
     @Override
@@ -75,14 +83,17 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
         initViews();
         checkPermissionAndLoadVideos();
 
+        // Header buttons
         findViewById(R.id.ivNotification).setOnClickListener(v ->
                 Toast.makeText(this, "Notifications", Toast.LENGTH_SHORT).show());
-
         findViewById(R.id.ivSettings).setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
-
         findViewById(R.id.tvToolsSeeAll).setOnClickListener(v ->
                 Toast.makeText(this, "All Tools - Coming Soon!", Toast.LENGTH_SHORT).show());
+
+        // Tap on video banner to toggle controls
+        heroVideoView.setOnClickListener(v -> toggleControls());
+        flControls.setOnClickListener(v -> toggleControls());
 
         // Play / Pause
         ivPlayPause.setOnClickListener(v -> {
@@ -90,34 +101,37 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
                 heroVideoView.pause();
                 isPlaying = false;
                 ivPlayPause.setImageResource(R.drawable.ic_play);
+                hideHandler.removeCallbacks(hideControls);
             } else {
                 heroVideoView.start();
                 isPlaying = true;
                 ivPlayPause.setImageResource(R.drawable.ic_pause);
-                seekHandler.post(seekUpdater);
+                scheduleHide();
             }
         });
 
         // Rewind 10s
         ivRewind.setOnClickListener(v -> {
-            int pos = Math.max(heroVideoView.getCurrentPosition() - 10000, 0);
-            heroVideoView.seekTo(pos);
+            heroVideoView.seekTo(Math.max(heroVideoView.getCurrentPosition() - 10000, 0));
+            scheduleHide();
         });
 
         // Forward 10s
         ivForward.setOnClickListener(v -> {
-            int pos = Math.min(heroVideoView.getCurrentPosition() + 10000,
-                    heroVideoView.getDuration());
-            heroVideoView.seekTo(pos);
+            heroVideoView.seekTo(Math.min(heroVideoView.getCurrentPosition() + 10000,
+                    heroVideoView.getDuration()));
+            scheduleHide();
         });
 
         // SeekBar
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar s, int progress, boolean fromUser) {
-                if (fromUser) heroVideoView.seekTo(progress);
+            @Override public void onProgressChanged(SeekBar s, int p, boolean fromUser) {
+                if (fromUser) heroVideoView.seekTo(p);
             }
-            @Override public void onStartTrackingTouch(SeekBar s) {}
-            @Override public void onStopTrackingTouch(SeekBar s) {}
+            @Override public void onStartTrackingTouch(SeekBar s) {
+                hideHandler.removeCallbacks(hideControls);
+            }
+            @Override public void onStopTrackingTouch(SeekBar s) { scheduleHide(); }
         });
 
         // Fullscreen
@@ -132,33 +146,103 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
                 startActivity(intent);
             }
         });
+
+        // Close - stop and show placeholder
+        ivClose.setOnClickListener(v -> stopHeroVideo());
     }
 
     private void initViews() {
-        rvVideoList      = findViewById(R.id.rvVideoList);
-        tvEmptyState     = findViewById(R.id.tvEmptyState);
-        heroVideoView    = findViewById(R.id.heroVideoView);
-        llHeroOverlay    = findViewById(R.id.llHeroOverlay);
-        llControls       = findViewById(R.id.llControls);
-        vControlsOverlay = findViewById(R.id.vControlsOverlay);
+        rvVideoList       = findViewById(R.id.rvVideoList);
+        tvEmptyState      = findViewById(R.id.tvEmptyState);
+        heroVideoView     = findViewById(R.id.heroVideoView);
+        llHeroOverlay     = findViewById(R.id.llHeroOverlay);
+        flControls        = findViewById(R.id.flControls);
         tvNowPlayingTitle = findViewById(R.id.tvNowPlayingTitle);
-        tvCurrentTime    = findViewById(R.id.tvCurrentTime);
-        tvDuration       = findViewById(R.id.tvDuration);
-        seekBar          = findViewById(R.id.seekBar);
-        ivPlayPause      = findViewById(R.id.ivPlayPause);
-        ivRewind         = findViewById(R.id.ivRewind);
-        ivForward        = findViewById(R.id.ivForward);
-        ivFullscreen     = findViewById(R.id.ivFullscreen);
+        tvCurrentTime     = findViewById(R.id.tvCurrentTime);
+        tvDuration        = findViewById(R.id.tvDuration);
+        seekBar           = findViewById(R.id.seekBar);
+        ivPlayPause       = findViewById(R.id.ivPlayPause);
+        ivRewind          = findViewById(R.id.ivRewind);
+        ivForward         = findViewById(R.id.ivForward);
+        ivFullscreen      = findViewById(R.id.ivFullscreen);
+        ivClose           = findViewById(R.id.ivClose);
 
         rvVideoList.setLayoutManager(new LinearLayoutManager(this));
         rvVideoList.setHasFixedSize(false);
+    }
+
+    @Override
+    public void onVideoClick(VideoModel video) {
+        currentVideo = video;
+
+        llHeroOverlay.setVisibility(View.GONE);
+        heroVideoView.setVisibility(View.VISIBLE);
+        tvNowPlayingTitle.setText(video.getTitle());
+        ivPlayPause.setImageResource(R.drawable.ic_pause);
+
+        heroVideoView.setVideoURI(video.getUri());
+        heroVideoView.setOnPreparedListener(mp -> {
+            mp.setLooping(false);
+            mp.setVideoScalingMode(android.media.MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+            heroVideoView.start();
+            isPlaying = true;
+            seekHandler.post(seekUpdater);
+            // Show controls briefly then hide
+            showControls();
+            scheduleHide();
+        });
+
+        heroVideoView.setOnCompletionListener(mp -> {
+            isPlaying = false;
+            ivPlayPause.setImageResource(R.drawable.ic_play);
+            seekHandler.removeCallbacks(seekUpdater);
+            showControls(); // keep visible when stopped
+        });
+    }
+
+    private void toggleControls() {
+        if (controlsVisible) {
+            fadeOutControls();
+        } else {
+            showControls();
+            if (isPlaying) scheduleHide();
+        }
+    }
+
+    private void showControls() {
+        controlsVisible = true;
+        flControls.setVisibility(View.VISIBLE);
+        flControls.animate().alpha(1f).setDuration(200).start();
+    }
+
+    private void fadeOutControls() {
+        controlsVisible = false;
+        flControls.animate().alpha(0f).setDuration(300).withEndAction(() ->
+                flControls.setVisibility(View.GONE)).start();
+    }
+
+    private void scheduleHide() {
+        hideHandler.removeCallbacks(hideControls);
+        hideHandler.postDelayed(hideControls, CONTROLS_HIDE_DELAY);
+    }
+
+    private void stopHeroVideo() {
+        heroVideoView.stopPlayback();
+        isPlaying = false;
+        currentVideo = null;
+        seekHandler.removeCallbacks(seekUpdater);
+        hideHandler.removeCallbacks(hideControls);
+        heroVideoView.setVisibility(View.GONE);
+        flControls.setVisibility(View.GONE);
+        flControls.setAlpha(1f);
+        controlsVisible = false;
+        llHeroOverlay.setVisibility(View.VISIBLE);
     }
 
     private void checkPermissionAndLoadVideos() {
         String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 ? Manifest.permission.READ_MEDIA_VIDEO
                 : Manifest.permission.READ_EXTERNAL_STORAGE;
-
         if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
             loadVideos();
         } else {
@@ -180,34 +264,6 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
     }
 
     @Override
-    public void onVideoClick(VideoModel video) {
-        currentVideo = video;
-
-        llHeroOverlay.setVisibility(View.GONE);
-        heroVideoView.setVisibility(View.VISIBLE);
-        vControlsOverlay.setVisibility(View.VISIBLE);
-        llControls.setVisibility(View.VISIBLE);
-        tvNowPlayingTitle.setText(video.getTitle());
-        ivPlayPause.setImageResource(R.drawable.ic_pause);
-
-        heroVideoView.setVideoURI(video.getUri());
-        heroVideoView.setOnPreparedListener(mp -> {
-            mp.setLooping(false);
-            // Scale video to fill banner fully
-            mp.setVideoScalingMode(android.media.MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-            heroVideoView.start();
-            isPlaying = true;
-            seekHandler.post(seekUpdater);
-        });
-
-        heroVideoView.setOnCompletionListener(mp -> {
-            isPlaying = false;
-            ivPlayPause.setImageResource(R.drawable.ic_play);
-            seekHandler.removeCallbacks(seekUpdater);
-        });
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         if (currentVideo != null && !heroVideoView.isPlaying()) {
@@ -226,27 +282,24 @@ public class MainActivity extends AppCompatActivity implements VideoAdapter.OnVi
             isPlaying = false;
         }
         seekHandler.removeCallbacks(seekUpdater);
+        hideHandler.removeCallbacks(hideControls);
     }
 
     private String formatTime(int ms) {
         int s = ms / 1000;
-        int m = s / 60;
-        s = s % 60;
-        return String.format(Locale.getDefault(), "%02d:%02d", m, s);
+        return String.format(Locale.getDefault(), "%02d:%02d", s / 60, s % 60);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                loadVideos();
-            } else {
-                Toast.makeText(this, "Permission denied.", Toast.LENGTH_LONG).show();
-                tvEmptyState.setVisibility(View.VISIBLE);
-                tvEmptyState.setText("Storage permission required to show videos.");
-            }
+        if (requestCode == PERMISSION_REQUEST_CODE &&
+                grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            loadVideos();
+        } else {
+            tvEmptyState.setVisibility(View.VISIBLE);
+            tvEmptyState.setText("Storage permission required to show videos.");
         }
     }
 }
