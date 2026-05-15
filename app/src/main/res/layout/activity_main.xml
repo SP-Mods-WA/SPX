@@ -224,40 +224,34 @@
                         android:textColor="#CCCCCC"
                         android:textSize="10sp" />
 
-                    <!-- Fullscreen (bottom right) -->
-                    <ImageView
-                        android:id="@+id/ivFullscreen"
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:layout_marginStart="8dp"
-                        android:padding="0dp"
-                        android:src="@drawable/ic_fullscreen"
-                        android:tint="#FFFFFF"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:focusable="true"/>
+
                 </LinearLayout>
             </LinearLayout>
 
         </FrameLayout>
     </FrameLayout>
 
-    <!-- ACTION BUTTONS ROW (replaces Tools) -->
-    <LinearLayout
+    <!-- ACTION BUTTONS ROW -->
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:scrollbars="none"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="10dp"
-        android:paddingBottom="10dp"
+        android:paddingBottom="10dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:gravity="center_vertical">
 
         <!-- Auto Next -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="70dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
             android:gravity="center"
             android:orientation="vertical">
             <FrameLayout
@@ -282,101 +276,11 @@
                 android:textSize="10sp"/>
         </LinearLayout>
 
-        <!-- Share -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <FrameLayout
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@drawable/tool_card_bg"
-                android:clickable="true"
-                android:focusable="true"
-                android:id="@+id/btnShare">
-                <ImageView
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_share"
-                    android:tint="#00BFFF"/>
-            </FrameLayout>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Share"
-                android:textColor="#CCCCCC"
-                android:textSize="10sp"/>
-        </LinearLayout>
-
-        <!-- PiP -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <FrameLayout
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@drawable/tool_card_bg"
-                android:clickable="true"
-                android:focusable="true"
-                android:id="@+id/btnPip">
-                <ImageView
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_pip"
-                    android:tint="#FF9500"/>
-            </FrameLayout>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="PiP"
-                android:textColor="#CCCCCC"
-                android:textSize="10sp"/>
-        </LinearLayout>
-
-        <!-- Fullscreen -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <FrameLayout
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@drawable/tool_card_bg"
-                android:clickable="true"
-                android:focusable="true"
-                android:id="@+id/btnFullscreenAction">
-                <ImageView
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_fullscreen"
-                    android:tint="#7B5CF0"/>
-            </FrameLayout>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Fullscreen"
-                android:textColor="#CCCCCC"
-                android:textSize="10sp"/>
-        </LinearLayout>
-
         <!-- Repeat -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="70dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
             android:gravity="center"
             android:orientation="vertical">
             <FrameLayout
@@ -404,7 +308,129 @@
                 android:textSize="10sp"/>
         </LinearLayout>
 
+        <!-- Background Play -->
+        <LinearLayout
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:gravity="center"
+            android:orientation="vertical">
+            <FrameLayout
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/tool_card_bg"
+                android:clickable="true"
+                android:focusable="true"
+                android:id="@+id/btnBgPlay">
+                <ImageView
+                    android:id="@+id/ivBgPlay"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_bg_play"
+                    android:tint="#AAAAAA"/>
+            </FrameLayout>
+            <TextView
+                android:id="@+id/tvBgPlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="BG Play"
+                android:textColor="#AAAAAA"
+                android:textSize="10sp"/>
+        </LinearLayout>
+
+        <!-- PiP -->
+        <LinearLayout
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:gravity="center"
+            android:orientation="vertical">
+            <FrameLayout
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/tool_card_bg"
+                android:clickable="true"
+                android:focusable="true"
+                android:id="@+id/btnPip">
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_pip"
+                    android:tint="#FF9500"/>
+            </FrameLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="PiP"
+                android:textColor="#CCCCCC"
+                android:textSize="10sp"/>
+        </LinearLayout>
+
+        <!-- Share -->
+        <LinearLayout
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:gravity="center"
+            android:orientation="vertical">
+            <FrameLayout
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/tool_card_bg"
+                android:clickable="true"
+                android:focusable="true"
+                android:id="@+id/btnShare">
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_share"
+                    android:tint="#00BFFF"/>
+            </FrameLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Share"
+                android:textColor="#CCCCCC"
+                android:textSize="10sp"/>
+        </LinearLayout>
+
+        <!-- Fullscreen -->
+        <LinearLayout
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+            <FrameLayout
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/tool_card_bg"
+                android:clickable="true"
+                android:focusable="true"
+                android:id="@+id/btnFullscreenAction">
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_fullscreen"
+                    android:tint="#7B5CF0"/>
+            </FrameLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Fullscreen"
+                android:textColor="#CCCCCC"
+                android:textSize="10sp"/>
+        </LinearLayout>
+
     </LinearLayout>
+    </HorizontalScrollView>
 
     <!-- MY VIDEOS HEADER -->
     <LinearLayout
