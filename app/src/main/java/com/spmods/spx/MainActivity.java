@@ -83,13 +83,14 @@ public class MainActivity extends AppCompatActivity
     private ImageView ivBgPlay;
     private TextView  tvBgPlay;
 
-    private boolean isPlaying       = false;
-    private boolean controlsVisible = false;
-    private boolean autoNextEnabled = false;
-    private boolean repeatEnabled   = false;
-    private boolean bgPlayEnabled   = false;
-    private boolean isBound         = false;
-    private boolean isInPipMode     = false;
+    private boolean isPlaying                = false;
+    private boolean controlsVisible          = false;
+    private boolean autoNextEnabled          = false;
+    private boolean repeatEnabled            = false;
+    private boolean bgPlayEnabled            = false;
+    private boolean isBound                  = false;
+    private boolean isInPipMode              = false;
+    private boolean isLaunchingChildActivity = false;
 
     // Pinch-to-zoom scale
     private float videoScale = 1.0f;
@@ -154,8 +155,10 @@ public class MainActivity extends AppCompatActivity
         // Header
         findViewById(R.id.ivNotification).setOnClickListener(v ->
                 Toast.makeText(this, "Notifications coming soon", Toast.LENGTH_SHORT).show());
-        findViewById(R.id.ivSettings).setOnClickListener(v ->
-                startActivity(new Intent(this, SettingsActivity.class)));
+        findViewById(R.id.ivSettings).setOnClickListener(v -> {
+            isLaunchingChildActivity = true;
+            startActivity(new Intent(this, SettingsActivity.class));
+        });
 
         // Banner tap
         heroVideoView.setOnClickListener(v -> toggleControls());
@@ -361,6 +364,7 @@ public class MainActivity extends AppCompatActivity
         intent.putExtra(VideoPlayerActivity.EXTRA_VIDEO_URI,   video.getUri().toString());
         intent.putExtra(VideoPlayerActivity.EXTRA_VIDEO_TITLE, video.getTitle());
         intent.putExtra(VideoPlayerActivity.EXTRA_START_POSITION, savedPosition);
+        isLaunchingChildActivity = true;
         startActivityForResult(intent, 1001);
     }
 
@@ -368,6 +372,7 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1001 && currentIndex >= 0 && videoList != null) {
+            isLaunchingChildActivity = false; // onStart already handled, block resume
             int returnPos = savedPosition;
             if (data != null)
                 returnPos = data.getIntExtra(VideoPlayerActivity.EXTRA_START_POSITION, savedPosition);
@@ -385,6 +390,7 @@ public class MainActivity extends AppCompatActivity
         share.setType("video/*");
         share.putExtra(Intent.EXTRA_STREAM, video.getUri());
         share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        isLaunchingChildActivity = true;
         startActivity(Intent.createChooser(share, "Share Video"));
     }
 
@@ -576,6 +582,18 @@ public class MainActivity extends AppCompatActivity
         if (isInPipMode) return;
         seekHandler.removeCallbacks(seekUpdater);
 
+        // Child activity (Settings, VideoPlayer, Share) - just save position, don't hand off to service
+        if (isLaunchingChildActivity) {
+            if (currentIndex >= 0 && videoList != null) {
+                savedPosition = heroVideoView.getCurrentPosition();
+                if (isPlaying) {
+                    heroVideoView.pause();
+                    isPlaying = false;
+                }
+            }
+            return;
+        }
+
         if (currentIndex >= 0 && videoList != null) {
             // Save position before pausing
             savedPosition = heroVideoView.getCurrentPosition();
@@ -625,20 +643,33 @@ public class MainActivity extends AppCompatActivity
         super.onStart();
         if (isInPipMode) return;
 
-        // Stop the background service first - no double play
+        // Returning from child activity (Settings, VideoPlayer, Share) - just resume from saved position
+        if (isLaunchingChildActivity) {
+            isLaunchingChildActivity = false;
+            if (currentIndex >= 0 && videoList != null && !isPlaying) {
+                try {
+                    if (savedPosition > 0) heroVideoView.seekTo(savedPosition);
+                    heroVideoView.start();
+                    isPlaying = true;
+                    ivPlayPause.setImageResource(R.drawable.ic_pause);
+                    seekHandler.post(seekUpdater);
+                } catch (Exception ignored) {}
+            }
+            return;
+        }
+
+        // Sync position from AudioService before stopping it
+        if (isBound && audioService != null) {
+            int svcPos = audioService.getCurrentPosition();
+            if (svcPos > 0) savedPosition = svcPos;
+        }
+
+        // Stop the background service - no double play
         stopService(new Intent(this, AudioService.class));
 
         if (currentIndex >= 0 && videoList != null) {
-            // Resume from saved position
-            try {
-                if (savedPosition > 0) {
-                    heroVideoView.seekTo(savedPosition);
-                }
-                heroVideoView.start();
-                isPlaying = true;
-                ivPlayPause.setImageResource(R.drawable.ic_pause);
-                seekHandler.post(seekUpdater);
-            } catch (Exception ignored) {}
+            // Re-setup video with correct position (handles fresh VideoView state)
+            playVideo(videoList.get(currentIndex), savedPosition);
         }
     }
 
