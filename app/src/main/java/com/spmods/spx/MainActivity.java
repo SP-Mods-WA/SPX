@@ -643,32 +643,24 @@ public class MainActivity extends AppCompatActivity
         super.onStart();
         if (isInPipMode) return;
 
-        // Returning from child activity (Settings, VideoPlayer, Share) - just resume from saved position
         if (isLaunchingChildActivity) {
+            // Returning from Settings/Share - VideoView still has URI, just resume
             isLaunchingChildActivity = false;
-            if (currentIndex >= 0 && videoList != null && !isPlaying) {
-                try {
-                    if (savedPosition > 0) heroVideoView.seekTo(savedPosition);
-                    heroVideoView.start();
-                    isPlaying = true;
-                    ivPlayPause.setImageResource(R.drawable.ic_pause);
-                    seekHandler.post(seekUpdater);
-                } catch (Exception ignored) {}
+            if (currentIndex >= 0 && videoList != null) {
+                playVideo(videoList.get(currentIndex), savedPosition);
             }
             return;
         }
 
-        // Sync position from AudioService before stopping it
+        // Returning from background - sync position from AudioService FIRST, then kill it
         if (isBound && audioService != null) {
             int svcPos = audioService.getCurrentPosition();
             if (svcPos > 0) savedPosition = svcPos;
         }
-
-        // Stop the background service - no double play
+        // Stop service synchronously before starting video to avoid double audio
         stopService(new Intent(this, AudioService.class));
 
         if (currentIndex >= 0 && videoList != null) {
-            // Re-setup video with correct position (handles fresh VideoView state)
             playVideo(videoList.get(currentIndex), savedPosition);
         }
     }
@@ -688,9 +680,8 @@ public class MainActivity extends AppCompatActivity
         hideHandler.removeCallbacks(hideControls);
         try { unregisterReceiver(pipReceiver); } catch (Exception ignored) {}
         // If bg play not enabled, stop service on destroy
-        if (!bgPlayEnabled) {
-            stopService(new Intent(this, AudioService.class));
-        }
+        // Always stop service when app is destroyed (not just backgrounded)
+        stopService(new Intent(this, AudioService.class));
     }
 
     // ── Controls ──────────────────────────────────
