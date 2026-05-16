@@ -9,12 +9,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.provider.MediaStore;
 import android.support.v4.media.session.MediaSessionCompat;
 
 import androidx.core.app.NotificationCompat;
@@ -27,14 +30,16 @@ public class AudioService extends Service {
     public static final String ACTION_NEXT   = "com.spmods.spx.NEXT";
     public static final String EXTRA_URI     = "extra_uri";
     public static final String EXTRA_TITLE   = "extra_title";
+    public static final String EXTRA_PATH    = "extra_path";
     public static final String EXTRA_POSITION = "extra_position";
 
-    private static final String CHANNEL_ID   = "spx_audio_channel";
-    private static final int    NOTIF_ID     = 1001;
+    private static final String CHANNEL_ID = "spx_audio_channel";
+    private static final int    NOTIF_ID   = 1001;
 
     private MediaPlayer mediaPlayer;
     private MediaSessionCompat mediaSession;
     private String currentTitle = "";
+    private String currentPath  = "";
     private boolean isPlaying   = false;
 
     public interface OnAudioListener {
@@ -49,7 +54,6 @@ public class AudioService extends Service {
     }
     private final IBinder binder = new AudioBinder();
 
-    // Broadcast receiver for notification buttons
     private final BroadcastReceiver controlReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context ctx, Intent intent) {
             String action = intent.getAction();
@@ -69,10 +73,8 @@ public class AudioService extends Service {
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
-
         mediaSession = new MediaSessionCompat(this, "SPXAudioService");
         mediaSession.setActive(true);
-
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_PLAY);
         filter.addAction(ACTION_PAUSE);
@@ -84,29 +86,27 @@ public class AudioService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) return START_STICKY;
-
         String action = intent.getAction();
         if (action == null) return START_STICKY;
-
         switch (action) {
             case ACTION_PLAY:
                 String uriStr = intent.getStringExtra(EXTRA_URI);
                 String title  = intent.getStringExtra(EXTRA_TITLE);
+                String path   = intent.getStringExtra(EXTRA_PATH);
                 int    pos    = intent.getIntExtra(EXTRA_POSITION, 0);
-                if (uriStr != null) startAudio(Uri.parse(uriStr), title, pos);
+                if (uriStr != null) startAudio(Uri.parse(uriStr), title, path, pos);
                 break;
-            case ACTION_PAUSE: pauseAudio();  break;
-            case ACTION_STOP:  stopSelf();    break;
+            case ACTION_PAUSE: pauseAudio(); break;
+            case ACTION_STOP:  stopSelf();   break;
         }
         return START_STICKY;
     }
 
-    public void startAudio(Uri uri, String title, int seekTo) {
+    public void startAudio(Uri uri, String title, String path, int seekTo) {
         currentTitle = title != null ? title : "Unknown";
-
+        currentPath  = path  != null ? path  : "";
         try {
             if (mediaPlayer != null) { mediaPlayer.release(); }
-
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -157,7 +157,6 @@ public class AudioService extends Service {
     }
 
     public boolean isPlaying() { return isPlaying; }
-
     public void setListener(OnAudioListener l) { this.listener = l; }
 
     // ── Notification ──────────────────────────────
@@ -171,52 +170,71 @@ public class AudioService extends Service {
         PendingIntent openIntent = PendingIntent.getActivity(this, 0, openApp,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        // Pause/Play action
         PendingIntent toggleIntent;
         if (playing) {
             Intent pi = new Intent(ACTION_PAUSE);
+            pi.setPackage(getPackageName());
             toggleIntent = PendingIntent.getBroadcast(this, 1, pi,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         } else {
             Intent pi = new Intent(ACTION_PLAY);
+            pi.setPackage(getPackageName());
             toggleIntent = PendingIntent.getBroadcast(this, 1, pi,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         }
 
-        // Next action
         Intent nextI = new Intent(ACTION_NEXT);
+        nextI.setPackage(getPackageName());
         PendingIntent nextIntent = PendingIntent.getBroadcast(this, 2, nextI,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        // Stop action
         Intent stopI = new Intent(ACTION_STOP);
+        stopI.setPackage(getPackageName());
         PendingIntent stopIntent = PendingIntent.getBroadcast(this, 3, stopI,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_play_circle)
-                .setContentTitle("SPX Player")
-                .setContentText(currentTitle)
+        // Load thumbnail for notification
+        Bitmap thumb = null;
+        if (!currentPath.isEmpty()) {
+            try {
+                thumb = ThumbnailUtils.createVideoThumbnail(
+                        currentPath, MediaStore.Images.Thumbnails.MINI_KIND);
+            } catch (Exception ignored) {}
+        }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_music)
+                .setContentTitle(currentTitle)
+                .setContentText(playing ? "Playing in background" : "Paused")
                 .setContentIntent(openIntent)
-                .addAction(playing ? R.drawable.ic_pause : R.drawable.ic_play,
+                .addAction(playing ? R.drawable.ic_pause_white : R.drawable.ic_play_arrow_white,
                         playing ? "Pause" : "Play", toggleIntent)
-                .addAction(R.drawable.ic_skip_next, "Next", nextIntent)
-                .addAction(R.drawable.ic_close,     "Stop", stopIntent)
+                .addAction(R.drawable.ic_skip_next_white, "Next", nextIntent)
+                .addAction(R.drawable.ic_close, "Stop", stopIntent)
                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mediaSession.getSessionToken())
-                        .setShowActionsInCompactView(0, 1))
+                        .setShowActionsInCompactView(0, 1, 2))
                 .setOngoing(playing)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .build();
+                .setShowWhen(false)
+                .setColor(0xFFFF00CC);
+
+        if (thumb != null) {
+            builder.setLargeIcon(thumb);
+        }
+
+        return builder.build();
     }
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID, "SPX Audio Player", NotificationManager.IMPORTANCE_LOW);
-            channel.setDescription("Background audio playback");
+                    CHANNEL_ID, "SPX Background Player", NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("Audio playback while app is in background");
             channel.setShowBadge(false);
+            channel.enableLights(false);
+            channel.enableVibration(false);
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
         }
     }
@@ -230,11 +248,12 @@ public class AudioService extends Service {
         try { unregisterReceiver(controlReceiver); } catch (Exception ignored) {}
         if (mediaPlayer != null) { mediaPlayer.release(); mediaPlayer = null; }
         if (mediaSession != null) { mediaSession.release(); }
+        stopForeground(true);
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        // Keep playing even after app is swiped away
+        // Continue playing even if app is swiped from recents
         super.onTaskRemoved(rootIntent);
     }
 }
