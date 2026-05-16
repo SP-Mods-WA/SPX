@@ -319,7 +319,7 @@ public class MainActivity extends AppCompatActivity
         heroVideoView.setOnPreparedListener(mp -> {
             mp.setLooping(repeatEnabled);
             mp.setVideoScalingMode(
-                    android.media.MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+                    android.media.MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
             if (startPos > 0) heroVideoView.seekTo(startPos);
             heroVideoView.start();
             isPlaying = true;
@@ -573,27 +573,49 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
-        // Don't touch audio service during PiP mode
         if (isInPipMode) return;
-        // Only start background audio if bgPlayEnabled AND currently playing
-        if (bgPlayEnabled && currentIndex >= 0 && videoList != null && isPlaying) {
-            int pos = heroVideoView.getCurrentPosition();
-            heroVideoView.pause();
-            VideoModel video = videoList.get(currentIndex);
-            Intent svcIntent = new Intent(this, AudioService.class);
-            svcIntent.setAction(AudioService.ACTION_PLAY);
-            svcIntent.putExtra(AudioService.EXTRA_URI,      video.getUri().toString());
-            svcIntent.putExtra(AudioService.EXTRA_TITLE,    video.getTitle());
-            svcIntent.putExtra(AudioService.EXTRA_PATH,     video.getPath());
-            svcIntent.putExtra(AudioService.EXTRA_POSITION, pos);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(svcIntent);
+        seekHandler.removeCallbacks(seekUpdater);
+
+        if (currentIndex >= 0 && videoList != null) {
+            // Save position before pausing
+            savedPosition = heroVideoView.getCurrentPosition();
+
+            if (bgPlayEnabled && isPlaying) {
+                // Hand off playback to AudioService (audio-only background)
+                heroVideoView.pause();
+                isPlaying = false;
+                VideoModel video = videoList.get(currentIndex);
+                Intent svcIntent = new Intent(this, AudioService.class);
+                svcIntent.setAction(AudioService.ACTION_PLAY);
+                svcIntent.putExtra(AudioService.EXTRA_URI,      video.getUri().toString());
+                svcIntent.putExtra(AudioService.EXTRA_TITLE,    video.getTitle());
+                svcIntent.putExtra(AudioService.EXTRA_PATH,     video.getPath());
+                svcIntent.putExtra(AudioService.EXTRA_POSITION, savedPosition);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(svcIntent);
+                } else {
+                    startService(svcIntent);
+                }
             } else {
-                startService(svcIntent);
+                // Not bg play - pause video and show minimal notification
+                if (isPlaying) {
+                    heroVideoView.pause();
+                    isPlaying = false;
+                }
+                // Show notification so user can return to app
+                if (currentIndex >= 0) {
+                    VideoModel video = videoList.get(currentIndex);
+                    Intent svcIntent = new Intent(this, AudioService.class);
+                    svcIntent.setAction(AudioService.ACTION_NOTIFY_ONLY);
+                    svcIntent.putExtra(AudioService.EXTRA_TITLE, video.getTitle());
+                    svcIntent.putExtra(AudioService.EXTRA_PATH,  video.getPath());
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(svcIntent);
+                    } else {
+                        startService(svcIntent);
+                    }
+                }
             }
-        } else if (!bgPlayEnabled) {
-            // Stop any running service if bg play is off
-            stopService(new Intent(this, AudioService.class));
         }
     }
 
@@ -601,14 +623,18 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        // Don't interfere when returning from PiP - handled by onPictureInPictureModeChanged
         if (isInPipMode) return;
-        // Always stop the background service when returning to app
+
+        // Stop the background service first - no double play
         stopService(new Intent(this, AudioService.class));
 
-        if (currentIndex >= 0 && videoList != null && !isPlaying) {
+        if (currentIndex >= 0 && videoList != null) {
+            // Resume from saved position
             try {
-                heroVideoView.resume();
+                if (savedPosition > 0) {
+                    heroVideoView.seekTo(savedPosition);
+                }
+                heroVideoView.start();
                 isPlaying = true;
                 ivPlayPause.setImageResource(R.drawable.ic_pause);
                 seekHandler.post(seekUpdater);
