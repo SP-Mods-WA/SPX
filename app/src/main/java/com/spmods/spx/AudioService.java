@@ -24,10 +24,11 @@ import androidx.core.app.NotificationCompat;
 
 public class AudioService extends Service {
 
-    public static final String ACTION_PLAY   = "com.spmods.spx.PLAY";
-    public static final String ACTION_PAUSE  = "com.spmods.spx.PAUSE";
-    public static final String ACTION_STOP   = "com.spmods.spx.STOP";
-    public static final String ACTION_NEXT   = "com.spmods.spx.NEXT";
+    public static final String ACTION_PLAY        = "com.spmods.spx.PLAY";
+    public static final String ACTION_PAUSE       = "com.spmods.spx.PAUSE";
+    public static final String ACTION_STOP        = "com.spmods.spx.STOP";
+    public static final String ACTION_NEXT        = "com.spmods.spx.NEXT";
+    public static final String ACTION_NOTIFY_ONLY = "com.spmods.spx.NOTIFY_ONLY";
     public static final String EXTRA_URI     = "extra_uri";
     public static final String EXTRA_TITLE   = "extra_title";
     public static final String EXTRA_PATH    = "extra_path";
@@ -80,6 +81,7 @@ public class AudioService extends Service {
         filter.addAction(ACTION_PAUSE);
         filter.addAction(ACTION_STOP);
         filter.addAction(ACTION_NEXT);
+        filter.addAction(ACTION_NOTIFY_ONLY);
         registerReceiver(controlReceiver, filter);
     }
 
@@ -95,6 +97,15 @@ public class AudioService extends Service {
                 String path   = intent.getStringExtra(EXTRA_PATH);
                 int    pos    = intent.getIntExtra(EXTRA_POSITION, 0);
                 if (uriStr != null) startAudio(Uri.parse(uriStr), title, path, pos);
+                break;
+            case ACTION_NOTIFY_ONLY:
+                // Show paused notification so user can tap to return - no audio
+                currentTitle = intent.getStringExtra(EXTRA_TITLE) != null
+                        ? intent.getStringExtra(EXTRA_TITLE) : "SPX Player";
+                currentPath  = intent.getStringExtra(EXTRA_PATH)  != null
+                        ? intent.getStringExtra(EXTRA_PATH)  : "";
+                isPlaying = false;
+                showNotification(false);
                 break;
             case ACTION_PAUSE: pauseAudio(); break;
             case ACTION_STOP:  stopSelf();   break;
