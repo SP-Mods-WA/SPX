@@ -6,17 +6,11 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 
-import com.spmods.spx.VideoModel;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class VideoLoader {
 
-    /**
-     * Queries MediaStore and returns all videos on the device,
-     * sorted by date added (newest first).
-     */
     public static List<VideoModel> getAllVideos(Context context) {
         List<VideoModel> videoList = new ArrayList<>();
 
@@ -36,10 +30,12 @@ public class VideoLoader {
                 MediaStore.Video.Media.DATE_ADDED
         };
 
+        String selection = MediaStore.Video.Media.DURATION + " > 0 AND " +
+                           MediaStore.Video.Media.SIZE + " > 0";
         String sortOrder = MediaStore.Video.Media.DATE_ADDED + " DESC";
 
         try (Cursor cursor = context.getContentResolver().query(
-                collection, projection, null, null, sortOrder)) {
+                collection, projection, selection, null, sortOrder)) {
 
             if (cursor == null) return videoList;
 
@@ -51,17 +47,19 @@ public class VideoLoader {
             int dateCol     = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED);
 
             while (cursor.moveToNext()) {
-                long id         = cursor.getLong(idCol);
-                String name     = cursor.getString(nameCol);
-                long duration   = cursor.getLong(durationCol);
-                long size       = cursor.getLong(sizeCol);
-                String path     = cursor.getString(dataCol);
-                long dateAdded  = cursor.getLong(dateCol);
+                long id        = cursor.getLong(idCol);
+                String name    = cursor.getString(nameCol);
+                long duration  = cursor.getLong(durationCol);
+                long size      = cursor.getLong(sizeCol);
+                String path    = cursor.getString(dataCol);
+                long dateAdded = cursor.getLong(dateCol);
+
+                if (name == null || name.isEmpty()) continue;
+                if (duration < 1000) continue; // skip < 1 second clips
 
                 Uri contentUri = ContentUris.withAppendedId(
                         MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
 
-                // Remove file extension from display title
                 String title = name.contains(".")
                         ? name.substring(0, name.lastIndexOf('.'))
                         : name;
