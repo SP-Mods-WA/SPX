@@ -8,6 +8,7 @@
 
     <!-- HEADER -->
     <LinearLayout
+        android:id="@+id/llHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
@@ -44,16 +45,22 @@
             android:layout_height="36dp"
             android:layout_marginEnd="16dp"
             android:padding="4dp"
-            android:src="@drawable/ic_notification" />
+            android:src="@drawable/ic_notification"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
         <ImageView
             android:id="@+id/ivSettings"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:padding="4dp"
-            android:src="@drawable/ic_settings" />
+            android:src="@drawable/ic_settings"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
     </LinearLayout>
 
-    <!-- HERO BANNER -->
+    <!-- HERO BANNER - rounded with clip -->
     <FrameLayout
         android:id="@+id/flHeroBanner"
         android:layout_width="match_parent"
@@ -62,7 +69,8 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
         android:background="@drawable/hero_rounded_bg"
-        android:clipToOutline="true">
+        android:clipToOutline="true"
+        android:elevation="2dp">
 
         <!-- Placeholder -->
         <LinearLayout
@@ -94,7 +102,7 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- VideoView -->
+        <!-- VideoView - fills banner exactly -->
         <VideoView
             android:id="@+id/heroVideoView"
             android:layout_width="match_parent"
@@ -107,7 +115,7 @@
             android:id="@+id/flControls"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#44000000"
+            android:background="#55000000"
             android:visibility="gone">
 
             <!-- Close (top right) -->
@@ -134,9 +142,9 @@
 
                 <ImageView
                     android:id="@+id/ivRewind"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
-                    android:padding="6dp"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:padding="8dp"
                     android:src="@drawable/ic_replay_10"
                     android:tint="#FFFFFF"
                     android:background="?attr/selectableItemBackgroundBorderless"
@@ -145,11 +153,11 @@
 
                 <ImageView
                     android:id="@+id/ivPlayPause"
-                    android:layout_width="54dp"
-                    android:layout_height="54dp"
-                    android:layout_marginStart="14dp"
-                    android:layout_marginEnd="14dp"
-                    android:padding="10dp"
+                    android:layout_width="58dp"
+                    android:layout_height="58dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:padding="12dp"
                     android:src="@drawable/ic_pause"
                     android:tint="#FFFFFF"
                     android:background="@drawable/btn_circle_pink"
@@ -158,9 +166,9 @@
 
                 <ImageView
                     android:id="@+id/ivForward"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
-                    android:padding="6dp"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:padding="8dp"
                     android:src="@drawable/ic_forward_10"
                     android:tint="#FFFFFF"
                     android:background="?attr/selectableItemBackgroundBorderless"
@@ -168,7 +176,7 @@
                     android:focusable="true"/>
             </LinearLayout>
 
-            <!-- Bottom: title + seekbar + time + fullscreen -->
+            <!-- Bottom bar: title + seekbar + time -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -178,14 +186,15 @@
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:paddingBottom="8dp"
-                android:paddingTop="20dp">
+                android:paddingTop="24dp">
 
                 <TextView
                     android:id="@+id/tvNowPlayingTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit="marquee_forever"
+                    android:singleLine="true"
                     android:text="Now Playing"
                     android:textColor="#FFFFFF"
                     android:textSize="11sp"
@@ -223,8 +232,6 @@
                         android:text="00:00"
                         android:textColor="#CCCCCC"
                         android:textSize="10sp" />
-
-
                 </LinearLayout>
             </LinearLayout>
 
@@ -233,6 +240,7 @@
 
     <!-- ACTION BUTTONS ROW -->
     <HorizontalScrollView
+        android:id="@+id/hsvActions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none"
@@ -241,199 +249,204 @@
         android:paddingTop="10dp"
         android:paddingBottom="10dp">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <!-- Auto Next -->
         <LinearLayout
-            android:layout_width="70dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:gravity="center"
-            android:orientation="vertical">
-            <FrameLayout
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@drawable/tool_card_bg">
-                <ImageView
-                    android:id="@+id/ivAutoNext"
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_skip_next"
-                    android:tint="#AAAAAA"/>
-            </FrameLayout>
-            <TextView
-                android:id="@+id/tvAutoNext"
-                android:layout_width="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Auto Next -->
+            <LinearLayout
+                android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Auto Next"
-                android:textColor="#AAAAAA"
-                android:textSize="10sp"/>
-        </LinearLayout>
-
-        <!-- Repeat -->
-        <LinearLayout
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:gravity="center"
-            android:orientation="vertical">
-            <FrameLayout
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@drawable/tool_card_bg"
+                android:layout_marginEnd="8dp"
+                android:gravity="center"
+                android:orientation="vertical"
                 android:clickable="true"
-                android:focusable="true"
-                android:id="@+id/btnRepeat">
-                <ImageView
-                    android:id="@+id/ivRepeat"
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_repeat"
-                    android:tint="#AAAAAA"/>
-            </FrameLayout>
-            <TextView
-                android:id="@+id/tvRepeat"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Repeat"
-                android:textColor="#AAAAAA"
-                android:textSize="10sp"/>
-        </LinearLayout>
+                android:focusable="true">
+                <FrameLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/tool_card_bg"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <ImageView
+                        android:id="@+id/ivAutoNext"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_skip_next"
+                        android:tint="#AAAAAA"/>
+                </FrameLayout>
+                <TextView
+                    android:id="@+id/tvAutoNext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Auto Next"
+                    android:textColor="#AAAAAA"
+                    android:textSize="10sp"/>
+            </LinearLayout>
 
-        <!-- Background Play -->
-        <LinearLayout
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:gravity="center"
-            android:orientation="vertical">
-            <FrameLayout
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@drawable/tool_card_bg"
-                android:clickable="true"
-                android:focusable="true"
-                android:id="@+id/btnBgPlay">
-                <ImageView
-                    android:id="@+id/ivBgPlay"
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_music"
-                    android:tint="#AAAAAA"/>
-            </FrameLayout>
-            <TextView
-                android:id="@+id/tvBgPlay"
-                android:layout_width="wrap_content"
+            <!-- Repeat -->
+            <LinearLayout
+                android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="BG Play"
-                android:textColor="#AAAAAA"
-                android:textSize="10sp"/>
-        </LinearLayout>
+                android:layout_marginEnd="8dp"
+                android:gravity="center"
+                android:orientation="vertical">
+                <FrameLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/tool_card_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:id="@+id/btnRepeat">
+                    <ImageView
+                        android:id="@+id/ivRepeat"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_repeat"
+                        android:tint="#AAAAAA"/>
+                </FrameLayout>
+                <TextView
+                    android:id="@+id/tvRepeat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Repeat"
+                    android:textColor="#AAAAAA"
+                    android:textSize="10sp"/>
+            </LinearLayout>
 
-        <!-- PiP -->
-        <LinearLayout
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:gravity="center"
-            android:orientation="vertical">
-            <FrameLayout
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@drawable/tool_card_bg"
-                android:clickable="true"
-                android:focusable="true"
-                android:id="@+id/btnPip">
-                <ImageView
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_pip"
-                    android:tint="#FF9500"/>
-            </FrameLayout>
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Background Play -->
+            <LinearLayout
+                android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="PiP"
-                android:textColor="#CCCCCC"
-                android:textSize="10sp"/>
-        </LinearLayout>
+                android:layout_marginEnd="8dp"
+                android:gravity="center"
+                android:orientation="vertical">
+                <FrameLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/tool_card_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:id="@+id/btnBgPlay">
+                    <ImageView
+                        android:id="@+id/ivBgPlay"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_music"
+                        android:tint="#AAAAAA"/>
+                </FrameLayout>
+                <TextView
+                    android:id="@+id/tvBgPlay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="BG Play"
+                    android:textColor="#AAAAAA"
+                    android:textSize="10sp"/>
+            </LinearLayout>
 
-        <!-- Share -->
-        <LinearLayout
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:gravity="center"
-            android:orientation="vertical">
-            <FrameLayout
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@drawable/tool_card_bg"
-                android:clickable="true"
-                android:focusable="true"
-                android:id="@+id/btnShare">
-                <ImageView
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_share"
-                    android:tint="#00BFFF"/>
-            </FrameLayout>
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- PiP -->
+            <LinearLayout
+                android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Share"
-                android:textColor="#CCCCCC"
-                android:textSize="10sp"/>
-        </LinearLayout>
+                android:layout_marginEnd="8dp"
+                android:gravity="center"
+                android:orientation="vertical">
+                <FrameLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/tool_card_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:id="@+id/btnPip">
+                    <ImageView
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_pip"
+                        android:tint="#FF9500"/>
+                </FrameLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="PiP"
+                    android:textColor="#CCCCCC"
+                    android:textSize="10sp"/>
+            </LinearLayout>
 
-        <!-- Fullscreen -->
-        <LinearLayout
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical">
-            <FrameLayout
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@drawable/tool_card_bg"
-                android:clickable="true"
-                android:focusable="true"
-                android:id="@+id/btnFullscreenAction">
-                <ImageView
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_fullscreen"
-                    android:tint="#7B5CF0"/>
-            </FrameLayout>
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Share -->
+            <LinearLayout
+                android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Fullscreen"
-                android:textColor="#CCCCCC"
-                android:textSize="10sp"/>
-        </LinearLayout>
+                android:layout_marginEnd="8dp"
+                android:gravity="center"
+                android:orientation="vertical">
+                <FrameLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/tool_card_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:id="@+id/btnShare">
+                    <ImageView
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_share"
+                        android:tint="#00BFFF"/>
+                </FrameLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Share"
+                    android:textColor="#CCCCCC"
+                    android:textSize="10sp"/>
+            </LinearLayout>
 
-    </LinearLayout>
+            <!-- Fullscreen -->
+            <LinearLayout
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+                <FrameLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/tool_card_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:id="@+id/btnFullscreenAction">
+                    <ImageView
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_fullscreen"
+                        android:tint="#7B5CF0"/>
+                </FrameLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Fullscreen"
+                    android:textColor="#CCCCCC"
+                    android:textSize="10sp"/>
+            </LinearLayout>
+
+        </LinearLayout>
     </HorizontalScrollView>
 
     <!-- MY VIDEOS HEADER -->
     <LinearLayout
+        android:id="@+id/llMyVideosHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
@@ -459,6 +472,7 @@
     </LinearLayout>
 
     <View
+        android:id="@+id/vMyVideosDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginStart="16dp"
