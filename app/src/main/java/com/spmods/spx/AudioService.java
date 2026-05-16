@@ -110,7 +110,7 @@ public class AudioService extends Service {
             case ACTION_PAUSE: pauseAudio(); break;
             case ACTION_STOP:  stopSelf();   break;
         }
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     public void startAudio(Uri uri, String title, String path, int seekTo) {
@@ -264,7 +264,6 @@ public class AudioService extends Service {
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        // Continue playing even if app is swiped from recents
-        super.onTaskRemoved(rootIntent);
+        stopSelf();
     }
 }
